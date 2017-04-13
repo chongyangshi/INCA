@@ -1,0 +1,100 @@
+\documentclass[10pt, oneside]{article}   	
+\usepackage[left=20mm,top=20mm,right=20mm,bottom=20mm]{geometry}   
+\geometry{a4paper}
+\usepackage{algorithm,algpseudocode}  
+\usepackage{graphicx}					
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{url}
+\usepackage{titlesec}
+\usepackage[parfill]{parskip}
+\usepackage{cite}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[parfill]{parskip}
+\setlength{\headsep}{5pt}
+\graphicspath{ {images/} }
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fixed,
+  fontadjust=true,
+  basewidth=0.5em
+}
+\titleformat{\section}
+{\normalfont\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+\title{\vspace{-1.6cm}INCA Open Examination Report}
+\author{Exam Number: Y3603***}
+\date{}							
+\begin{document}
+\maketitle
+\section{Discussion of architectures}
+The type of problem required to be solved with a neural network is a classification problem -- that is, to decide class membership of an unknown data item, based on another data set of data items with known class memberships \cite[Sec. 2]{Dreiseitl2002352}. Depending on the target output, the purpose could be to classify a set of inputs into two or more classes. This problem requires the simplest form of binary classification \cite[Fig. 4]{candanedo2016accurate}, where the output should be either \textit{yes} (room occupied) or \textit{no} (unoccupied). 
+
+Given the nature of the problem, a wide range of feedforward architectures can be chosen. This section gives a brief discussion on the features of each architecture, and performs test-runs of that architecture's network in various configurations to find the best cursory performance. The MATLAB Neural Network Toolbox \cite{kohonen2014matlab} will be used throughout this report, unless otherwise noted.
+
+The data used in these cursory test-runs are directly imported from the data CSVs with minimal processing. The training dataset is used to train the networks, while the two test datasets merged into one (for now) is used to test the networks on unseen data. Input and target datasets are separated due to toolbox requirements. At this stage, the only pre-processing done is the removal of time, which will be later experimented with the chosen architecture.
+
+\subsection{Multilayer perceptron networks with backpropagation}
+
+Multilayer perceptron (MLP) is a typical feedforward neural network. In a MLP, neurons are arranged in layers, which consist of an input layer, one or more hidden layers, and an output layer. The feedforward property means that neurons are connected from one layer to the next with no `lateral' or `feedback' connections \cite{som-lecture}, and the backpropagation property through training functions implies the network's ability to propagate errors at the output layer back through the network to update weights during training, improving performance. MLP requires supervised training -- with known target for the training dataset. MLP is useful to solve both regression and classification problems, but careful control of network configuration and training parameters is required to avoid overfitting. The selection of number of layers and layer sizes are important in creating accurate and useful MLP networks.
+
+Three different backpropagation training functions are used for MLP: Levenberg-Marquardt ($trainlm$), gradient descent ($traingd$), and gradient descent with momentum ($traingdm$) for updating weight and bias values during training. All three are trained on the training dataset with various layer configurations to test for best performance. The performance here is measured by two indices: the mean square error (MSE) and the actual misclassification rate (with classification determined by rounding to 0 or 1), both on the testing dataset unseen during training, as in practical use the network nearly always works with unseen data. All other parameters are toolbox default. The results of the testing can be seen in Figure \ref{fig:mlp-testing}.
+
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline 
+MLP Configuration & [5 3 2] & [6 4 2] & [10 5 5] & [20 10 10] & [6 4] \\ \hline \hline 
+$trainlm$ Validation MSE & 0.077 & 0.090 & 0.062 & 0.093 & 0.045 \\ \hline 
+$trainlm$ Misclassification (\%) & 7.87 & 9.63 & 6.21 & 9.87 & 8.15 \\ \hline \hline 
+$traingd$ Validation MSE & 0.149 & 0.053 & 0.101 & 0.054 & 0.088 \\ \hline 
+$traingd$ Misclassification (\%) & 16.5 & 4.16 & 10.2 & 6.19 & 11.8 \\ \hline \hline 
+$traingdm$ Validation MSE & 0.046 & 0.197 & 0.109 & 0.033 & 0.032 \\ \hline 
+$traingdm$ Misclassification (\%) & 5.87 & 27.5 & 16.9 & 2.24 & 3.31 \\ \hline 
+\end{tabular}
+\end{center}
+\caption{\label{fig:mlp-testing} Results from cursory testing of multilayer perceptron (MLP) networks.}
+\end{figure}
+
+Barring the large [20 10 10] architecture (while the best external validation performance for $traingdm$, is slow to train and has a tendency to overfit other training data), the best performing architectures for $trainlm$, $traingd$ and $traingdm$ appear to be [10 5 5], [6 4 2] and [6 4] respectively. It is worth nothing that these are performed on data with limited preprocessing, and are indicative only to determine what configurations or similar configurations could be potentially used if MLP is chosen to be the final architecture.
+
+\subsection{Radial basis function networks}
+
+The radial basis function (RBF) network is another feedforward architecture with the ability to solve linearly inseparable classification problems. Rather than using hidden layers of identical neurons to achieve this like MLP, a RBF network transforms data into a higher dimension through the use of a layer of fully connected neurons computing radial basis functions \cite{rbf-lecture}. This often allows the RBF network to solve classification problems more efficiently than MLP, but at the same time makes training on large data samples a slow process, due to the need of computing large numbers of distinct basis functions \cite[p. 260]{haykin2008}.
+
+The toolbox provides two methods for creating an RBF network: exact fit and fewer neurons. The former, while fast, is not used due to its high tendency of overfitting. The latter requires a definite goal MSE as stopping condition, thus requires much more time to train, but does not have the disadvantage of the exact fit method. Based on the MSEs seen during MLP training, four goals are used to train four different RBF networks, as shown in Figure \ref{fig:rbf-testing}. All other parameters are toolbox defaults.
+
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline 
+RBF Training MSE Goal & 0.2 & 0.1 & 0.05 & 0.01 & 0.001 \\ \hline \hline 
+Validation MSE & 0.185 & 0.197 & 0.214 & 0.234 & 0.240 \\ \hline 
+Misclassification (\%) & 24.33 & 24.31 & 24.31 & 24.28 & 24.27 \\ \hline 
+\end{tabular}
+\end{center}
+\caption{\label{fig:rbf-testing} Results from cursory testing of radial basis function (RBF) networks.}
+\end{figure}
+
+From past experience with the toolbox, training of RBF networks with the toolbox appears to be deterministic. It can be observed that RBF networks perform significantly worse than MLP networks (Figure \ref{fig:mlp-testing}) with the same input, especially in terms of actual misclassification rate on unseen data.
+
+\subsection{Self-organising maps}
+
+Self-organising maps (SOM) is a feedforward neural network often used for specialised purposes such as data visualisation. The network consists of a mesh of connected neurons that attempts to rearrange positions match a data distribution in a iterative process \cite[p. 34]{som-lecture}. While it is often used to reduce the dimension of data for visualisation purposes, it can also be used to solve classification problems \cite{owens2000application}. 
+
+In particular, SOM is able to produce a out-dimensional output mesh from a multi-dimensional input dataset, allowing the computation of both linear regression and classification problems, as demonstrated by Haykin \cite[Sec. 9.5]{haykin2008}. This allows the binary classification problem to be solved by fitting a one-dimensional mesh to the training data, and determining which side of the mesh is a testing input placed. Further more, SOM deploys unsupervised learning and does not require targets for training data. This reduces the likelihood of bias towards patterns of training data, and allows continuous training in use.
+
+The same training and testing datasets as used for MLP and RBF networks are used to evaluate SOM performance, with varying single-dimensional mesh sizes (also the number of neurons), as shown in Figure \ref{fig:som-testing}.
+
+
+\bibliographystyle{IEEEtran}
+\small{\bibliography{report}}
+\end{document}  
