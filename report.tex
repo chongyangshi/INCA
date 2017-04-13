@@ -88,12 +88,37 @@ From past experience with the toolbox, training of RBF networks with the toolbox
 
 \subsection{Self-organising maps}
 
-Self-organising maps (SOM) is a feedforward neural network often used for specialised purposes such as data visualisation. The network consists of a mesh of connected neurons that attempts to rearrange positions match a data distribution in a iterative process \cite[p. 34]{som-lecture}. While it is often used to reduce the dimension of data for visualisation purposes, it can also be used to solve classification problems \cite{owens2000application}. 
+Self-organising maps (SOM) is a feedforward neural network architecture often used for specialised purposes such as data visualisation. The network consists of a mesh of connected neurons that attempts to rearrange positions match a data distribution in a iterative process \cite[p. 34]{som-lecture}. While it is often used to reduce the dimension of data for visualisation purposes, it can also be used to solve classification problems \cite{owens2000application}. 
 
 In particular, SOM is able to produce a out-dimensional output mesh from a multi-dimensional input dataset, allowing the computation of both linear regression and classification problems, as demonstrated by Haykin \cite[Sec. 9.5]{haykin2008}. This allows the binary classification problem to be solved by fitting a one-dimensional mesh to the training data, and determining which side of the mesh is a testing input placed. Further more, SOM deploys unsupervised learning and does not require targets for training data. This reduces the likelihood of bias towards patterns of training data, and allows continuous training in use.
 
-The same training and testing datasets as used for MLP and RBF networks are used to evaluate SOM performance, with varying single-dimensional mesh sizes (also the number of neurons), as shown in Figure \ref{fig:som-testing}.
+The same training and testing datasets as used for MLP and RBF networks are used to evaluate SOM performance, with varying single-dimensional mesh sizes (also the number of neurons), as shown in Figure \ref{fig:som-testing}. Toolbox defaults such as $hexgrid$ and $linkdist$ are used.
 
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline 
+SOM Mesh Size & [2 1] & [5 1] & [10 1] & [20 1] & [30 1] & [40 1] \\ \hline 
+Validation MSE & 0.113 & 0.090 & 0.055 & 0.084 & 0.138 & 0.125 \\ \hline 
+Misclassification (\%) & 24.3 & 11.3 & 7.33 & 3.21 & 4.83 & 3.74 \\ \hline \hline 
+SOM Mesh Size & [50 1] & [60 1] & [70 1] & [80 1] & [90 1] & [100 1] \\ \hline 
+Validation MSE & 0.162 & 0.138 & 0.150 & 0.166 & 0.207 & 0.225 \\ \hline 
+Misclassification (\%) & 11.1 & 10.8 & 9.89 & 11.7 & 30.2 & 29.7 \\ \hline 
+\end{tabular}
+\end{center}
+\caption{\label{fig:som-testing} Results from cursory testing of self-organising maps  (SOM).}
+\end{figure}
+
+It can be observed that SOM exhibits a steady and accurate performance between 10 and 40 neurons in the mesh. The best performance with 20 neurons is comparable to those of MLP.
+
+\subsection{Selection of the final architecture}
+
+Based on the results from cursory testings of the three architectures discussed, as well their characteristics, the \textbf{self-organising map (SOM)} is chosen as the final architecture for further experimentation. 
+
+RBF is firstly ruled out due to its consistently high misclassification rate observed on unseen data, making it undesirable for the purpose of the problem: accurately identify the occupancy of a room based on sensor data only. While different MLP training functions do produce comparable performance to SOM at different layer configurations, it is ultimately decided that the constant influx of new data during the operation of the occupancy identification system would create hassle in constantly sourcing data for the supervised training of MLP, as the patterns in sensor data will change as the season or other environmental conditions change. The unsupervised training of SOM allows the system to take into account new data in far less computational expensive way. Thus, MLP is also ruled out, leaving SOM as the chosen architecture.
+
+In addition, a few more runs of the cursory testing also shows that the misclassification rates of MLP fluctuate more significantly than SOM, which could potentially cause the system to be less stable in producing accurate results if MLP is used in place of SOM. 
 
 \bibliographystyle{IEEEtran}
 \small{\bibliography{report}}
