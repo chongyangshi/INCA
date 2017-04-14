@@ -6,9 +6,14 @@ for i = 1:size(datafiles, 1)
     data = textscan(file, '%s%s%f%f%f%f%f%f', 'Delimiter', ',', 'HeaderLines', 1);
     date_times = strrep(data{2}, '"', '');
     time_stamps = datenum(date_times, 'yyyy-mm-dd HH:MM:SS');
-    values = []; % No time
-    %values = [time_stamps']; % Time stamp
-    %values = [cellfun(@str2num, strrep(data{1}, '"', ''))'];
+    time_values = []; % No time
+    %time_values = [time_stamps']; % Time Stamp
+    %time_values = [cellfun(@str2num, strrep(data{1}, '"', ''))']; % Time Sequence
+    if ~isempty(time_values)
+        values = im2double(mat2gray(time_values));
+    else
+        values = time_values;
+    end
     for j = 3:7
         values = [values; data{j}'];
     end
@@ -85,4 +90,14 @@ door_closed_test_in = datasets{2}{1};
 door_closed_test_out = datasets{2}{2};
 door_open_test_in = datasets{3}{1};
 door_open_test_out = datasets{3}{2};
+
+% Time check -- uncoment and comment lines at start of script
+som_size = [20 1];
+test_som = selforgmap(som_size);
+test_som = train(test_som, proper_training_in);
+fprintf('%s SOM Training MSE: %f.\n', mat2str(som_size), get_mse_som(test_som, proper_training_in, proper_training_out));
+fprintf('%s SOM Validation 1 MSE: %f.\n', mat2str(som_size), get_mse_som(test_som, door_closed_test_in, door_closed_test_out));
+fprintf('%s SOM Validation 1 Actual Misclassification Rate: %f.\n', mat2str(som_size), get_misclassification_som(test_som, door_closed_test_in, door_closed_test_out));
+fprintf('%s SOM Validation 2 MSE: %f.\n', mat2str(som_size), get_mse_som(test_som, door_open_test_in, door_open_test_out));
+fprintf('%s SOM Validation 2 Actual Misclassification Rate: %f.\n', mat2str(som_size), get_misclassification_som(test_som, door_open_test_in, door_open_test_out));
 

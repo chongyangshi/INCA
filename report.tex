@@ -33,7 +33,7 @@
 \date{}							
 \begin{document}
 \maketitle
-\section{Discussion of architectures}
+\section{Discussion of architectures} \label{sec:architectures}
 The type of problem required to be solved with a neural network is a classification problem -- that is, to decide class membership of an unknown data item, based on another data set of data items with known class memberships \cite[Sec. 2]{Dreiseitl2002352}. Depending on the target output, the purpose could be to classify a set of inputs into two or more classes. This problem requires the simplest form of binary classification \cite[Fig. 4]{candanedo2016accurate}, where the output should be either \textit{yes} (room occupied) or \textit{no} (unoccupied). 
 
 Given the nature of the problem, a wide range of feedforward architectures can be chosen. This section gives a brief discussion on the features of each architecture, and performs test-runs of that architecture's network in various configurations to find the best cursory performance. The MATLAB Neural Network Toolbox \cite{kohonen2014matlab} will be used throughout this report, unless otherwise noted.
@@ -86,7 +86,7 @@ Misclassification (\%) & 24.33 & 24.31 & 24.31 & 24.28 & 24.27 \\ \hline
 
 From past experience with the toolbox, training of RBF networks with the toolbox appears to be deterministic. It can be observed that RBF networks perform significantly worse than MLP networks (Figure \ref{fig:mlp-testing}) with the same input, especially in terms of actual misclassification rate on unseen data.
 
-\subsection{Self-organising maps}
+\subsection{Self-organising maps} \label{subsec:som-test}
 
 Self-organising maps (SOM) is a feedforward neural network architecture often used for specialised purposes such as data visualisation. The network consists of a mesh of connected neurons that attempts to rearrange positions match a data distribution in a iterative process \cite[p. 34]{som-lecture}. While it is often used to reduce the dimension of data for visualisation purposes, it can also be used to solve classification problems \cite{owens2000application}. 
 
@@ -121,6 +121,30 @@ RBF is firstly ruled out due to its consistently high misclassification rate obs
 In addition, a few more runs of the cursory testing also shows that the misclassification rates of MLP fluctuate more significantly than SOM, which could potentially cause the system to be less stable in producing accurate results if MLP is used in place of SOM. 
 
 \section{Room occupancy detection with self-organising maps}
+
+\subsection{Data exploration and pre-processing}
+While Section \ref{sec:architectures} merged the two testing datasets for convenience, according to the source of the data, the two testing datasets are different in nature: the much smaller first dataset was recorded mostly when the door to the room is closed, and the bigger second dataset was recorded mostly with the door open \cite[Tb. 5]{candanedo2016accurate}. Therefore, for the in-depth study of the data in this section, the two testing datasets will be processed separately.
+
+The training dataset will be used to train the SOM, while the two testing datasets will be used as unseen inputs to evaluate the performance of the trained SOM. All three datasets exhibit a relative imbalance in class membership: the percentages of room unoccupied are 79\%, 64\% and 79\% respectively. While is could potentially cause a bias in training and testing data, it was decided that no rebalancing measures should be conducted, as (1) the training and testing datasets exhibit a common pattern, and (2) this appears to be the normal usage pattern of the room in question, as well as the fact that 79\% is not an overwhelming majority that could skew results, such as those observed in using SOM to detect transaction fraud (negative $>$99\%) \cite{almendra2014using}, which would require special measures for the SOM to function reliably. There is no missing value. With the exception of time, all values are numerical. Therefore no imputation or numerical encodings are required.
+
+Two types of data based on time are provided: the sequence number and the exact time. Both of which could be potentially useful for the network, especially in studying the time-based occupation pattern of the room studied. But at the same time, this could cause the loss of generalisability, as well as affecting the network performance. In order to determine the suitability of using time, the best SOM configuration Section \ref{subsec:som-test} -- [20 1] is trained by three variations of the training dataset: time removed, with time sequence numbers, and with exact times converted into integer timestamps. In the latter two variations, the time variable is scaled to between 0 and 1. For all variations, the other five input variables are attached as-is. The results of the testing can be found in Figure \ref{fig:time-testing}.
+
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|c|c|c|c|}
+\hline 
+Time Variation in Input & No Time & Integer Timestamps & Time Sequence Numbers \\ \hline \hline 
+Validation 1 MSE & 0.063 & 0.063 & 0.062 \\ \hline 
+Misclassification 1 (\%) & 2.18 & 2.18 & 2.18 \\ \hline \hline 
+Validation 2 MSE &  0.090 & 0.089 & 0.090 \\ \hline 
+Misclassification 2 (\%) & 3.51 & 3.41 & 3.48 \\ \hline \hline 
+\end{tabular}
+\end{center}
+\caption{\label{fig:time-testing} Results from testing the use of time in training input on a [20 1] SOM network.}
+\end{figure}
+
+From the results, it can be seen that the inclusion of time (in either form) has almost no effect on the performance of network on unseen test data, confirming the assessment specification that the other input variables (from sensor data) have already included the influence of time. Therefore, time is removed from the input variables.
 
 
 
