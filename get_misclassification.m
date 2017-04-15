@@ -11,4 +11,4 @@ for i = 1:size(results, 2)
         misclassification_count = misclassification_count + 1;
     end
 end
-misclass_rate = misclassification_count / total_count;
+misclass_rate = misclassification_count / total_count * 100;

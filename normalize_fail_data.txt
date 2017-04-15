@@ -1,0 +1,10 @@
+1: mean 0.197818, variance 0.000000
+2: mean 0.137906, variance 0.000000
+3: mean 16.030019, variance 0.001189
+4: mean 0.320028, variance 0.000000
+5: mean 60.532199, variance 0.003259
+6: mean 0.049589, variance 0.000003
+7: mean 0.063595, variance 0.000004
+8: mean 2.176360, variance 0.000000
+9: mean 0.101083, variance 0.000593
+10: mean 4.581624, variance 5.740809

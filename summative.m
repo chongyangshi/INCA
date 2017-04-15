@@ -91,7 +91,8 @@ door_closed_test_out = datasets{2}{2};
 door_open_test_in = datasets{3}{1};
 door_open_test_out = datasets{3}{2};
 
-% Time check -- uncoment and comment lines at start of script
+%{
+% Time check -- uncomment and comment lines at start of script
 som_size = [20 1];
 test_som = selforgmap(som_size);
 test_som = train(test_som, proper_training_in);
@@ -101,3 +102,144 @@ fprintf('%s SOM Validation 1 Actual Misclassification Rate: %f.\n', mat2str(som_
 fprintf('%s SOM Validation 2 MSE: %f.\n', mat2str(som_size), get_mse_som(test_som, door_open_test_in, door_open_test_out));
 fprintf('%s SOM Validation 2 Actual Misclassification Rate: %f.\n', mat2str(som_size), get_misclassification_som(test_som, door_open_test_in, door_open_test_out));
 
+% Is equalized training data better? No.
+occupied = [];
+unoccupied = [];
+for i = 1:size(proper_training_in, 2)
+    column = [proper_training_in(:,i); proper_training_out(i)];
+    if proper_training_out(i) == 1
+        occupied = [occupied column];
+    else
+        unoccupied = [unoccupied column];
+    end
+end
+occupied_count = size(occupied, 2);
+unoccupied_sampled = datasample(unoccupied, occupied_count, 2, 'Replace', false);
+test_train_in = [occupied(1:5,:) unoccupied_sampled(1:5,:)];
+test_train_out = [occupied(6,:) unoccupied_sampled(6,:)];
+full_sample = [proper_training_in; proper_training_out];
+full_sampled = datasample(full_sample, occupied_count * 2, 2, 'Replace', false);
+full_train_in = full_sampled(1:5,:);
+full_train_out = full_sampled(6,:);
+som_size = [20 1];
+equalized_training_mses = [];
+equalized_val1_mses = [];
+equalized_val1_miss = [];
+equalized_val2_mses = [];
+equalized_val2_miss = [];
+unequalized_training_mses = [];
+unequalized_val1_mses = [];
+unequalized_val1_miss = [];
+unequalized_val2_mses = [];
+unequalized_val2_miss = [];
+for i = 1:10
+    test_som = selforgmap(som_size);
+    test_som = train(test_som, test_train_in);
+    equalized_training_mses = [equalized_training_mses get_mse_som(test_som, test_train_in, test_train_out)];
+    equalized_val1_mses = [equalized_val1_mses get_mse_som(test_som, door_closed_test_in, door_closed_test_out)];
+    equalized_val1_miss = [equalized_val1_miss get_misclassification_som(test_som, door_closed_test_in, door_closed_test_out)];
+    equalized_val2_mses = [equalized_val2_mses get_mse_som(test_som, door_open_test_in, door_open_test_out)];
+    equalized_val2_miss = [equalized_val2_miss get_misclassification_som(test_som, door_open_test_in, door_open_test_out)];
+end
+for i = 1:10
+    test_som = selforgmap(som_size);
+    test_som = train(test_som, full_train_in);
+    unequalized_training_mses = [unequalized_training_mses get_mse_som(test_som, full_train_in, full_train_out)];
+    unequalized_val1_mses = [unequalized_val1_mses get_mse_som(test_som, door_closed_test_in, door_closed_test_out)];
+    unequalized_val1_miss = [unequalized_val1_miss get_misclassification_som(test_som, door_closed_test_in, door_closed_test_out)];
+    unequalized_val2_mses = [unequalized_val2_mses get_mse_som(test_som, door_open_test_in, door_open_test_out)];
+    unequalized_val2_miss = [unequalized_val2_miss get_misclassification_som(test_som, door_open_test_in, door_open_test_out)];
+end
+
+datum = [equalized_training_mses; equalized_val1_mses; equalized_val1_miss; equalized_val2_mses; equalized_val2_miss; unequalized_training_mses; unequalized_val1_mses; unequalized_val1_miss; unequalized_val2_mses; unequalized_val2_miss];
+for i = 1:size(datum, 1)
+    fprintf('%d: mean %f, variance %f\n', i, mean(datum(i,:)), var(datum(i,:)));
+end
+
+% Should we normalize input? No.
+cut_offs = [size(proper_training_in, 2) size(proper_training_in, 2) + size(door_closed_test_in, 2)];
+full_in = [proper_training_in door_closed_test_in door_open_test_in];
+full_in_normalized = normalize_rows(full_in);
+training_data = full_in_normalized(:,1:cut_offs(1));
+testing1_data = full_in_normalized(:,(cut_offs(1)+1):cut_offs(2));
+testing2_data = full_in_normalized(:,(cut_offs(2)+1):end);
+normalized_training_mses = [];
+normalized_val1_mses = [];
+normalized_val1_miss = [];
+normalized_val2_mses = [];
+normalized_val2_miss = [];
+unnormalized_training_mses = [];
+unnormalized_val1_mses = [];
+unnormalized_val1_miss = [];
+unnormalized_val2_mses = [];
+unnormalized_val2_miss = [];
+for i = 1:10
+    som_size = [20 1];
+    test_som = selforgmap(som_size);
+    test_som = train(test_som, training_data);
+    normalized_training_mses = [normalized_training_mses get_mse_som(test_som, training_data, proper_training_out)];
+    normalized_val1_mses = [normalized_val1_mses get_mse_som(test_som, testing1_data, door_closed_test_out)];
+    normalized_val1_miss = [normalized_val1_miss get_misclassification_som(test_som, testing1_data, door_closed_test_out)];
+    normalized_val2_mses = [normalized_val2_mses get_mse_som(test_som, testing2_data, door_open_test_out)];
+    normalized_val2_miss = [normalized_val2_miss get_misclassification_som(test_som, testing2_data, door_open_test_out)];
+end
+for i = 1:10
+    som_size = [20 1];
+    test_som = selforgmap(som_size);
+    test_som = train(test_som, proper_training_in);
+    unnormalized_training_mses = [unnormalized_training_mses get_mse_som(test_som, proper_training_in, proper_training_out)];
+    unnormalized_val1_mses = [unnormalized_val1_mses get_mse_som(test_som, door_closed_test_in, door_closed_test_out)];
+    unnormalized_val1_miss = [unnormalized_val1_miss get_misclassification_som(test_som, door_closed_test_in, door_closed_test_out)];
+    unnormalized_val2_mses = [unnormalized_val2_mses get_mse_som(test_som, door_open_test_in, door_open_test_out)];
+    unnormalized_val2_miss = [unnormalized_val2_miss get_misclassification_som(test_som, door_open_test_in, door_open_test_out)];
+end
+datum = [normalized_training_mses; normalized_val1_mses; normalized_val1_miss; normalized_val2_mses; normalized_val2_miss];
+datum = [datum; unnormalized_training_mses; unnormalized_val1_mses; unnormalized_val1_miss; unnormalized_val2_mses; unnormalized_val2_miss];
+for i = 1:size(datum, 1)
+    fprintf('%d: mean %f, variance %f\n', i, mean(datum(i,:)), var(datum(i,:)));
+end
+%}
+
+% Should we PCA the data? No.
+cut_offs = [size(proper_training_in, 2) size(proper_training_in, 2) + size(door_closed_test_in, 2)];
+full_in = [proper_training_in door_closed_test_in door_open_test_in];
+[xn, xs1] = mapstd(full_in);
+[xtrans,xs2] = processpca(xn, 0.02);
+training_data = xtrans(:,1:cut_offs(1));
+testing1_data = xtrans(:,(cut_offs(1)+1):cut_offs(2));
+testing2_data = xtrans(:,(cut_offs(2)+1):end);
+pcad_training_mses = [];
+pcad_val1_mses = [];
+pcad_val1_miss = [];
+pcad_val2_mses = [];
+pcad_val2_miss = [];
+unpcad_training_mses = [];
+unpcad_val1_mses = [];
+unpcad_val1_miss = [];
+unpcad_val2_mses = [];
+unpcad_val2_miss = [];
+for i = 1:10
+    som_size = [20 1];
+    test_som = selforgmap(som_size);
+    test_som = train(test_som, training_data);
+    pcad_training_mses = [pcad_training_mses get_mse_som(test_som, training_data, proper_training_out)];
+    pcad_val1_mses = [pcad_val1_mses get_mse_som(test_som, testing1_data, door_closed_test_out)];
+    pcad_val1_miss = [pcad_val1_miss get_misclassification_som(test_som, testing1_data, door_closed_test_out)];
+    pcad_val2_mses = [pcad_val2_mses get_mse_som(test_som, testing2_data, door_open_test_out)];
+    pcad_val2_miss = [pcad_val2_miss get_misclassification_som(test_som, testing2_data, door_open_test_out)];
+end
+for i = 1:10
+    som_size = [20 1];
+    test_som = selforgmap(som_size);
+    test_som = train(test_som, proper_training_in);
+    unpcad_training_mses = [unpcad_training_mses get_mse_som(test_som, proper_training_in, proper_training_out)];
+    unpcad_val1_mses = [unpcad_val1_mses get_mse_som(test_som, door_closed_test_in, door_closed_test_out)];
+    unpcad_val1_miss = [unpcad_val1_miss get_misclassification_som(test_som, door_closed_test_in, door_closed_test_out)];
+    unpcad_val2_mses = [unpcad_val2_mses get_mse_som(test_som, door_open_test_in, door_open_test_out)];
+    unpcad_val2_miss = [unpcad_val2_miss get_misclassification_som(test_som, door_open_test_in, door_open_test_out)];
+end
+datum = [pcad_training_mses; pcad_val1_mses; pcad_val1_miss; pcad_val2_mses; pcad_val2_miss];
+datum = [datum; unpcad_training_mses; unpcad_val1_mses; unpcad_val1_miss; unpcad_val2_mses; unpcad_val2_miss];
+for i = 1:size(datum, 1)
+    fprintf('%d: mean %f, variance %f\n', i, mean(datum(i,:)), var(datum(i,:)));
+end
