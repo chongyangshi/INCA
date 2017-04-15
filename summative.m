@@ -198,7 +198,6 @@ datum = [datum; unnormalized_training_mses; unnormalized_val1_mses; unnormalized
 for i = 1:size(datum, 1)
     fprintf('%d: mean %f, variance %f\n', i, mean(datum(i,:)), var(datum(i,:)));
 end
-%}
 
 % Should we PCA the data? No.
 cut_offs = [size(proper_training_in, 2) size(proper_training_in, 2) + size(door_closed_test_in, 2)];
@@ -243,3 +242,4 @@ datum = [datum; unpcad_training_mses; unpcad_val1_mses; unpcad_val1_miss; unpcad
 for i = 1:size(datum, 1)
     fprintf('%d: mean %f, variance %f\n', i, mean(datum(i,:)), var(datum(i,:)));
 end
+%}

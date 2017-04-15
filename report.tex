@@ -126,16 +126,18 @@ In addition, a few more runs of the cursory testing also shows that the misclass
 \subsection{Data exploration and pre-processing}
 While Section \ref{sec:architectures} merged the two testing datasets for convenience, according to the source of the data, the two testing datasets are different in nature: the much smaller first dataset was recorded mostly when the door to the room is closed, and the bigger second dataset was recorded mostly with the door open \cite[Tb. 5]{candanedo2016accurate}. Therefore, for the in-depth study of the data in this section, the two testing datasets will be processed separately. The number of inputs in the training dataset and the two test datasets (Validation 1, Validation 2) are 8143, 2665 and 9752 respectively.
 
+Based on observations of results from $plotsomhits$ in cursory testing, an assumption is made that the SOM will always class the data on either end of the one-dimensional network, which has always been the case in the observed results. This is used to calculate the misclassification rate, based on which end is closer to the location the data is placed by the SOM. When high misclassification rates are observed after preprocessing procedures later in this section, $plotsomhits$ will be consulted again to ensure that the problem is not from this assumption. It is worth noting that the toolbox's SOM performs no preprocessing by default.
+
 The training dataset will be used to train the SOM, while the two testing datasets will be used as unseen inputs to evaluate the performance of the trained SOM. There is no missing value. With the exception of time, all values are numerical. Therefore no imputation or numerical encodings are required. All three datasets exhibit a relative imbalance in class membership: the percentages of room unoccupied are 79\%, 64\% and 79\% respectively. While is could potentially cause a bias in training and testing data, it was decided that no rebalancing measures should be conducted, as (1) the training and testing datasets exhibit a common pattern, and (2) this appears to be the normal usage pattern of the room in question, as well as the fact that 79\% is not an overwhelming majority that could skew results, such as those observed in using SOM to detect transaction fraud (negative $>$99\%) \cite{almendra2014using}, which would require special measures for the SOM to function reliably. 
 
-To further illustrate the effects of rebalancing, a comparison test was conducted between a training dataset of 1729 randomly sampled unoccupied inputs and all 1729 occupied inputs, and a training dataset of 3458 randomly sampled inputs with no particular pattern. Each side of comparison was freshly trained ten times, and the results are as shown in Figure \ref{fig:equalize-testing}, demonstrating that it is better \textit{not} to rebalance the inputs in SOM training. It is worth noting that as SOM deploys unsupervised training, the network is not aware of the class distribution of the training dataset.
+To further illustrate the effects of rebalancing, a comparison test was conducted with toolbox defaults between a training dataset of 1729 randomly sampled unoccupied inputs and all 1729 occupied inputs, and a training dataset of 3458 randomly sampled inputs with no particular pattern. Each side of comparison was freshly trained ten times, and the results are as shown in Figure \ref{fig:equalize-testing}, demonstrating that it is better \textit{not} to rebalance the inputs in SOM training. It is worth noting that as SOM deploys unsupervised training, the network is not aware of the class distribution of the training dataset.
 
 \begin{figure}[h]
 \begin{center}
 \fontsize{9}{11}\selectfont
 \begin{tabular}{|c|c|c|}
 \hline 
-Rebalance of Input Dataset & Yes (1729 Positive + 1729 Negative) & No (3458 Random) \\ \hline
+Rebalance of Input Dataset & Rebalanced (1729 Positive + 1729 Negative) & Not Rebalanced (3458 Random) \\ \hline
 Mean Training MSE & 0.096 & 0.055 \\ \hline \hline 
 Mean Validation 1 MSE & 0.071 & 0.069 \\ \hline 
 Mean Misclassification 1 (\%) & 8.96 & 2.18 \\ \hline \hline 
@@ -143,10 +145,10 @@ Mean Validation 2 MSE & 0.112 & 0.140 \\ \hline
 Mean Misclassification 2 (\%) & 16.08 & 9.23 \\ \hline
 \end{tabular}
 \end{center}
-\caption{\label{fig:equalize-testing} Results from testing the balancing of training input on a [20 1] SOM. (All MSE variance $<0.01$, all \% variance $<0.02$.)}
+\caption{\label{fig:equalize-testing} Results from testing the balancing of training input on a [20 1] SOM. (All MSE variances $<0.01$, all \% variances $<0.02$.)}
 \end{figure}
 
-Two types of data based on time are provided: the sequence number and the exact time. Both of which could be potentially useful for the network, especially in studying the time-based occupation pattern of the room studied. But at the same time, this could cause the loss of generalisability, as well as affecting the network performance. In order to determine the suitability of using time, the best SOM configuration Section \ref{subsec:som-test} -- [20 1] is trained by three variations of the training dataset: time removed, with time sequence numbers, and with exact times converted into integer timestamps. In the latter two variations, the time variable is scaled to between 0 and 1. For all variations, the other five input variables are attached as-is. The results of the testing can be found in Figure \ref{fig:time-testing}.
+Two types of data based on time are provided: the sequence number and the exact time. Both of which could be potentially useful for the network, especially in studying the time-based occupation pattern of the room studied. But at the same time, this could cause the loss of generalisability, as well as affecting the network performance. In order to determine the suitability of using time, the best SOM configuration Section \ref{subsec:som-test} -- [20 1] is trained by three variations of the training dataset: time removed, with time sequence numbers, and with exact times converted into integer timestamps. In the latter two variations, the time variable is scaled to between 0 and 1. For all variations, the other five input variables are attached as is. The results of the testing can be found in Figure \ref{fig:time-testing}.
 
 \begin{figure}[h]
 \begin{center}
@@ -177,14 +179,103 @@ This leaves five input variables, all based on sensor data, as shown in Figure \
 2 & Humidity & Numeric & [16.745, 39.5] \\ \hline 
 3 & Light & Numeric & [0, 1697.2] \\ \hline 
 4 & CO\textsubscript{2} & Numeric & [412.75, 2076.5] \\ \hline
-5 & HumidityRatio & Numeric & [0.0027, 0.0065] \\ \hline
+5 & Humidity Ratio & Numeric & [0.0027, 0.0065] \\ \hline
 \end{tabular}
 \end{center}
 \caption{\label{fig:final-variables} Input variables to the SOM.}
 \end{figure}
 
+With five numeric input variables, two different forms of further pre-processing are possible: [0, 1] normalisation or principle component analysis (PCA) after variance standardisation. In order to better understand the characteristics of the input data, $plotmatrix$ is first performed on input variables in Figure \ref{fig:final-variables}, as shown on the left side of Figure \ref{fig:pca-before-after}.
 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=8cm]{plotmatrix1.pdf}
+\includegraphics[width=8cm]{plotmatrix2.pdf}
+\end{center}
+\caption{\label{fig:pca-before-after} Results of $plotmatrix$ of the full dataset before (left) and after (right) PCA.}
+\end{figure}
 
+From Figure \ref{fig:pca-before-after}(left), it is clear that some input variables may be skewed, especially \#3 (Light) and \#4 (CO\textsubscript{2}), which may also contain outliers. This makes [0, 1] normalisation with $mapminmax$ potentially unsuitable, as proved by comparison test with unnormalised data, shown in Figure \ref{fig:normalize-testing}.
+
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|c|c|c|}
+\hline 
+Normalisation of Input Dataset & Normalized & Not Normalized \\ \hline
+Mean Training MSE & 0.198 & 0.050 \\ \hline \hline 
+Mean Validation 1 MSE & 0.138 & 0.064 \\ \hline 
+Mean Misclassification 1 (\%) & 16.03 & 2.18 \\ \hline \hline 
+Mean Validation 2 MSE & 0.320 & 0.101 \\ \hline 
+Mean Misclassification 2 (\%) & 60.53 & 4.58 \\ \hline
+\end{tabular}
+\end{center}
+\caption{\label{fig:normalize-testing} Results from testing the [0, 1] normalisation of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised misclassification 2 variance $=5.74$ , rest $<0.01$.)}
+\end{figure}
+
+An alternative to normalisation is to first transform input data so that each variable has a mean of 0 and standard deviation of 1, by first applying $mapstd$ then $processpca$ with a maximum fraction of 0.02. This resulted in the removal of one variable -- which makes sense, as variable \#5 Humidity Ratio was calculated from temperature and relative humidity, resulting in a possible correlation. The result of PCA is visualised in Figure \ref{fig:pca-before-after} (right). It is evident that the processed input variables are far less correlated, and could potentially improve the training of SOM.
+
+However, it came to a surprise that this is not the case, after a comparison testing of 10 runs with toolbox defaults on both a [20 1] and a [20 5] network, as shown in Figure \ref{fig:pca-testing}.
+
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|c|c|c|}
+\hline 
+PCA Processing of Input Dataset & After PCA & Before PCA \\ \hline
+Mean Training MSE & 0.467 & 0.050 \\ \hline \hline 
+Mean Validation 1 MSE & 0.552 & 0.063 \\ \hline 
+Mean Misclassification 1 (\%) & 84.65 & 2.17 \\ \hline \hline 
+Mean Validation 2 MSE & 0.303 & 0.100 \\ \hline 
+Mean Misclassification 2 (\%) & 38.70 & 4.55 \\ \hline
+\end{tabular}
+\end{center}
+\caption{\label{fig:pca-testing} Results from testing the PCA processing of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised misclassification 2 variance $=5.50$ , rest $<0.22$.)}
+\end{figure}
+
+In order to confirm that the high misclassification rates do not originate from a problem in the assumption of SOM clustering on two ends, and that using a two-dimensional SOM instead will not alleviate the issue, SOM sample hit plots from the training of the [20 1] and another [20 5] SOM are shown in Figure \ref{fig:pca-fail}. It can be observed that in both cases, more than two clusters of the data can be seen for each class, rendering a meaningful binary classification impossible.
+
+\begin{figure}[h]
+\begin{center}
+Before PCA:\\
+\includegraphics[width=8cm]{nopca-ones.pdf} \includegraphics[width=8cm]{nopca-zeros.pdf}\\
+After PCA:\\
+\includegraphics[width=8cm]{pca-fail1-ones.pdf} \includegraphics[width=8cm]{pca-fail1-zeros.pdf}
+\includegraphics[width=8cm]{pca-fail2-ones.pdf} \includegraphics[width=8cm]{pca-fail2-zeros.pdf}
+\end{center}
+\caption{\label{fig:pca-fail} $plotsomhits$ plots from the training of a [20 1] and a [20 5] SOM on the input data. At the top is the control group (before PCA processing), and at the bottom are SOM plots after PCA (with new SOMs). To the left are occupied cases, and to the right are unoccupied cases.}
+\end{figure}
+
+A possible explanation to this interesting observation is that SOM can be considered as a non-linear generalisation of PCA itself \cite[p. 1]{akinduko2012initialization}. Principle component could be used as a method for initialisation of the SOM weight positions, but it is evaluated to perform less well than random initialisation. Therefore, applying PCA on the inputs of SOM may not achieve the same effects as on the inputs of a MLP. 
+
+Considering the fact that the five variables shown in Figure \ref{fig:final-variables} without additional pre-processing already performs very well (single-digit misclassification percentages) as the baseline for the few comparisons performed in this section, it was decided that \textbf{the five input variables will be used as is for the SOM without further processing}.
+
+\subsection{Description of the SOM architecture}
+
+The self-organising map (SOM) represents a unique feedforward architecture. The architecture consists of a mesh of connected neurons, each selectively tuned for specific features of the input data during the training process \cite[Sec. 9.1]{haykin2008}. The mesh of neurons are topologically ordered \cite[p. 11]{som-lecture}, which implies that a specific point on the map formed by these neurons maps to a specific set of characteristics seen in a certain set of input data. This feature allows SOM to be used to solve simple classification problems such as this one, in addition to its very useful purposes in projecting high-dimensionally data nonlinearly to achieve purposes such as visualisation. Two models of this mapping process exist: the Willshaw-von der Malsburg's model and the Kohonen model \cite[Sec. 9.2]{haykin2008}, and the MATLAB toolbox uses the Kohonen model \cite{som-matlab}, to be described in more detail in Section \ref{subsec:training}.
+
+The SOM is implemented with the $selforgmap$ and associated methods in the MATLAB Neural Network Toolbox \cite{kohonen2014matlab}. For all of the preliminary testings in the previous sections, the default parameters for the network are used: 100 steps in each stage of the training (stages to be covered in \ref{subsec:training}), initial neighbourhood size of 3 (to be later reduced), arranged in a hexagonal topology with linked distance as the distance function. In addition, the legacy $newsom$ method also allows the creation of same SOMs with adjustable learning rates, at this time they are set to defaults. Later in Section \ref{subsec:training}, changes to some of these parameters will be explored.
+
+The architecture of the SOM is relatively simple to implement: an input layer of a set number of neurons connects to a layer of map neurons (nodes) topographically arranged in a mesh, the dimensions of which are defined by the network configuration. Each map neuron has a set of weights in its connections with neurons on the input layer, which affects the length of the connection, resulting in the surface of the mesh to ``bend'' as the weights change. At initialisation, various methods can be used to initialise these weights. The toolbox default creates linearly separated sets of weight, and places the same number of neurons on the input layer as there are input variables, as shown in Figure \ref{fig:som-init}.
+
+Lateral connections are also to be created between neighbouring neurons based on the topology. Their positions are useful to the distance function such as linked distance (which means distances immutable in this case, as $linkdist$ counts by neuron only), as mentioned above. In the case of the one-dimensional mesh used in this report, the lateral connections are much simpler due to the simplified structure (at most two connections per neuron), as shown in Figure \ref{fig:som-init} (left). A visual illustration of a SOM of dimensions [5 2] is shown in Figure \ref{fig:som-visual}.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=8cm]{somnc.pdf} \includegraphics[width=2.07cm]{sompos.pdf} \includegraphics[width=2cm]{sompos-aftertraining.pdf}
+\end{center}
+\caption{\label{fig:som-init} The initial neighbour connections and weight positions (first two of five) of the SOM created by the toolbox (left), as well as the weight positions of the same inputs after training (right).}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=12cm]{som-visual.pdf} 
+\end{center}
+\caption{\label{fig:som-visual} Visual illustration of a SOM with dimensions [5 2] and two input neurons (possibly connecting two input variables).}
+\end{figure}
+
+\subsection{Training of the SOM architecture} \label{subsec:training}
+ 
 \bibliographystyle{IEEEtran}
 \small{\bibliography{report}}
 \end{document}  
