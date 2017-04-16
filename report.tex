@@ -6,6 +6,7 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{gensymb}
+\usepackage{multirow}
 \usepackage{url}
 \usepackage{titlesec}
 \usepackage[parfill]{parskip}
@@ -145,7 +146,7 @@ Mean Validation 2 MSE & 0.112 & 0.140 \\ \hline
 Mean Misclassification 2 (\%) & 16.08 & 9.23 \\ \hline
 \end{tabular}
 \end{center}
-\caption{\label{fig:equalize-testing} Results from testing the balancing of training input on a [20 1] SOM. (All MSE variances $<0.01$, all \% variances $<2.00$.)}
+\caption{\label{fig:equalize-testing} Results from testing the balancing of training input on a [20 1] SOM. (All MSE variances $<0.01$, all \% variances $<0.02$.)}
 \end{figure}
 
 Two types of data based on time are provided: the sequence number and the exact time. Both of which could be potentially useful for the network, especially in studying the time-based occupation pattern of the room studied. But at the same time, this could cause the loss of generalisability, as well as affecting the network performance. In order to determine the suitability of using time, the best SOM configuration Section \ref{subsec:som-test} -- [20 1] is trained by three variations of the training dataset: time removed, with time sequence numbers, and with exact times converted into integer timestamps. In the latter two variations, the time variable is scaled to between 0 and 1. For all variations, the other five input variables are attached as is. The results of the testing can be found in Figure \ref{fig:time-testing}.
@@ -210,7 +211,7 @@ Mean Validation 2 MSE & 0.320 & 0.101 \\ \hline
 Mean Misclassification 2 (\%) & 60.53 & 4.58 \\ \hline
 \end{tabular}
 \end{center}
-\caption{\label{fig:normalize-testing} Results from testing the [0, 1] normalisation of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised misclassification 2 variance $=5.74$ , rest $<1.00$.)}
+\caption{\label{fig:normalize-testing} Results from testing the [0, 1] normalisation of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised misclassification 2 variance $=5.74$ , rest $<0.01$.)}
 \end{figure}
 
 An alternative to normalisation is to first transform input data so that each variable has a mean of 0 and standard deviation of 1, by first applying $mapstd$ then $processpca$ with a maximum fraction of 0.02. This resulted in the removal of one variable -- which makes sense, as variable \#5 Humidity Ratio was calculated from temperature and relative humidity, resulting in a possible correlation. The result of PCA is visualised in Figure \ref{fig:pca-before-after} (right). It is evident that the processed input variables are far less correlated, and could potentially improve the training of SOM.
@@ -309,24 +310,30 @@ First, to test the influence of number of steps in each phase, a few training co
 \begin{figure}[h]
 \begin{center}
 \fontsize{9}{11}\selectfont
-\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\begin{tabular}{|*{8}{c|}}
 \hline 
-Number of Steps in Each Phase & Type & 100 & 250 & 500 & 750 & 1000 & 2000\\ \hline
-\multirow{2}{*}{Training MSE} & Mean & 0.050 & 0.068 & \\ \hline 
-& Variance & \<0.01 & \<0.01 &  \\ \hline
-\multirow{2}{*}{Validation 1 MSE} & Mean & 0.064 & 0.094 & \\ \hline 
-& Variance & \<0.01 & \<0.01 & \\ \hline
-\multirow{2}{*}{Misclassification 1} (\%) & Mean & 2.18 & 3.45 & \\ \hline 
-& Variance & \<0.01 & 0.283 &  \\ \hline
-\multirow{2}{*}{Validation 2 MSE & Mean & 0.101 & 0.127 & \\ \hline 
-& Variance & \<0.01 & \<0.01 & \\ \hline
-\multirow{2}{*}{Misclassification 2 (\%) & Mean & 4.54 & 4.96 \\ \hline
-& Variance & 5.38 & 7.02 & \\ \hline
+Number of Steps in Each Training Phase & Type & 100 & 250 & 500 & 750 & 1000 & 2000 \\ \hline
+\multirow{2}{*}{Training MSE} & Mean & 0.050 & 0.068 & 0.066 & 0.071 & 0.069 & 0.071 \\ \cline{2-8}
+\ & Variance & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 \\ \hline
+\multirow{2}{*}{Validation 1 MSE} & Mean & 0.064 & 0.094 & 0.092 & 0.098 & 0.096 & 0.098  \\ \cline{2-8}
+\ & Variance & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 \\ \hline
+\multirow{2}{*}{Misclassification 1 (\%)} & Mean & 2.18 & 3.45 & 3.39 & 3.97 & 3.88 & 3.65 \\ \cline{2-8}
+\ & Variance & $<$0.01 & 0.283 & 0.222 & 0.952 & 0.947 & 0.106 \\ \hline
+\multirow{2}{*}{Validation 2 MSE} & Mean & 0.101 & 0.127 & 0.118 & 0.134 & 0.128 & 0.131 \\ \cline{2-8}
+\ & Variance & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 \\ \hline
+\multirow{2}{*}{Misclassification 2 (\%)} & Mean & 4.54 & 4.96 & 3.88 & 5.88 & 5.28 & 5.12 \\ \cline{2-8}
+\ & Variance & 5.38 & 7.02 & 3.36 & 11.7 & 10.4 & 8.74 \\ \hline
 \end{tabular}
 \end{center}
 \caption{\label{fig:steps-testing} Results from varying the number of steps in each phase of training on a [20 1] SOM. The total number of training epochs is twice this number.}
 \end{figure}
 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[height=5cm]{steps-plot.pdf}
+\end{center}
+\caption{\label{fig:testing-plots} Plots from testing varying number of training steps (left), varying neighbourhood sizes (mid), and varying learning rates (right).}
+\end{figure}
 \subsection{Evaluation of the trained SOM}
 
 Before starting the evaluation of the trained SOM, it is necessary to first discuss in more detail how the actual misclassification rates (``Misclassification \%'') are calculated. As described at the start of Section \ref{subsec:preprocessing}, an assumption was made that the one-dimensional SOM will cluster the two classes of inputs at the two ends of the map. During the course of this report, extensive observations on $plotsomhits$ have always showed that this is the case on one-dimensional SOMs without normalisation or PCA conducted on the input data. 

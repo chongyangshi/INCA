@@ -270,11 +270,10 @@ for s = 1:size(som_steps, 2)
     mean2_miss = [mean2_miss 100 - mean(val2_miss)];
 end
 figure;
-title('Performance of SOM on Unseen Data (Varying Training Steps)');
-xlabel('Number of Training Steps');
-ylabel('Mean Correct Classification Rate');
 plot(som_steps, mean1_miss, '-rx'); hold on;
 plot(som_steps, mean2_miss, '-gx');
 axis([100,2000,80,100]);
 legend(['Validation Set 1 (2665 inputs)'; 'Validation Set 2 (9752 inputs)']);
-hold on;
+title('Performance of SOM on Unseen Data (Varying Training Steps)');
+xlabel('Number of Training Steps');
+ylabel('Mean Correct Classification Rate');
