@@ -255,7 +255,7 @@ Considering the fact that the five variables shown in Figure \ref{fig:final-vari
 
 The self-organising map (SOM) represents a unique feedforward architecture. The architecture consists of a mesh of connected neurons, each selectively tuned for specific features of the input data during the training process \cite[Sec. 9.1]{haykin2008}. The mesh of neurons are topologically ordered \cite[p. 11]{som-lecture}, which implies that a specific point on the map formed by these neurons maps to a specific set of characteristics seen in a certain set of input data. This feature allows SOM to be used to solve simple classification problems such as this one, in addition to its very useful purposes in projecting high-dimensionally data nonlinearly to achieve purposes such as visualisation. Two models of this mapping process exist: the Willshaw-von der Malsburg's model and the Kohonen model \cite[Sec. 9.2]{haykin2008}, and the MATLAB toolbox uses the Kohonen model \cite{som-matlab}, to be described in more detail in Section \ref{subsec:training}.
 
-The SOM is implemented with the $selforgmap$/$newsom$ and associated methods in the MATLAB Neural Network Toolbox \cite{kohonen2014matlab}. For all of the preliminary testings in the previous sections, the default parameters for the network are used: 100 epochs in each phase of the training (phases to be covered in \ref{subsec:training}), initial neighbourhood size of 3 (to be later reduced), arranged in a hexagonal topology with linked distance as the distance function. In addition, the legacy $newsom$ method also allows the creation of same SOMs with adjustable learning rates, at this time they are set to defaults. Later in Section \ref{subsec:training}, changes to some of these parameters will be explored.
+The SOM is implemented with the $selforgmap$/$newsom$ and associated methods in the MATLAB Neural Network Toolbox \cite{kohonen2014matlab}. For all of the preliminary testings in the previous sections, the default parameters for the network are used: 100 epochs in each phase of the training (phases to be covered in \ref{subsec:training}), initial neighbourhood size of 3 (to be gradually reduced), arranged in a hexagonal topology with linked distance as the distance function. Later in Section \ref{subsec:training}, changes to some of these parameters will be explored.
 
 The architecture of the SOM is relatively simple to implement: an input layer of a set number of neurons connects to a single layer of map neurons (nodes) topographically arranged in a mesh, the dimensions of which are defined by the network configuration. This forms a feedforward structure \cite[p. 429]{haykin2008}. Each map neuron has a set of weights in its connections with neurons on the input layer, which affects the length of the connection, resulting in the surface of the mesh to ``bend'' as the weights change. At initialisation, various methods can be used to initialise these weights. The toolbox default creates linearly separated sets of weight, and places the same number of neurons on the input layer as there are input variables, as shown in Figure \ref{fig:som-init}.
 
@@ -303,24 +303,24 @@ To achieve a gradual process of weight adjustment, the learning rate $\eta$ and 
 \eta (n) = \eta_0 exp(-\frac{n}{\iota}) \;\;\;\;\;\;\;  \sigma (n) = \sigma_0 exp(-\frac{n}{\iota'})
 \end{equation}
 
-While there is no choice of training algorithms, it is possible to alter the number of steps in each phrase of training, as well as the initial learning rates $\eta$ and neighbourhood sizes $\sigma$ to observe their effects on the performance of the trained SOM. Based on the recommendations from the module \cite{som-lecture} and Haykin \cite{haykin2008}, several different combinations of training steps, learning rates and neighbourhood sizes are chosen, each tested ten times on a fresh [20 1] SOM. 
+While there is no choice of training algorithms, it is possible to alter the number of steps in each phrase of training, as well as the initial neighbourhood sizes $\sigma$ to observe their effects on the performance of the trained SOM. Unfortunately the newer implementations of $newsom$ in the toolbox no longer allows the adjustment of learning rates at each phase, fixating them at $\eta=0.9$ and $\eta=0.02$ respectively\cite{newsom-matlab}. Based on the recommendations from the module \cite{som-lecture} and Haykin \cite{haykin2008}, several different combinations of training steps, learning rates and neighbourhood sizes are chosen, each tested ten times on a fresh [20 1] SOM. 
 
-First, to test the influence of number of steps in each phase, a few training configurations are tested with the default learning rates and neighbourhood sizes, as shown in Figure \ref{fig:steps-testing}.
+First, to test the influence of number of steps in each phase, a few training configurations are tested with the default learning rates and neighbourhood sizes, as shown in Figure \ref{fig:steps-testing} and plotted in Figure {fig:testing-plots} (left). Based on the mean validation performance on unseen data, 500 steps is selected as the number of steps in each phase of training, as it produces the best possible result in the second, larger validation set, and the second best result in the first validation set. Compared with the recommended 0.1 initial learning rate at 1000 steps with hypothetical learning ``amount''' of 100, 500 steps at the default 0.9 initial learning rate has an ``amount'' of 450.
 
 \begin{figure}[h]
 \begin{center}
 \fontsize{9}{11}\selectfont
 \begin{tabular}{|*{8}{c|}}
 \hline 
-Number of Steps in Each Training Phase & Type & 100 & 250 & 500 & 750 & 1000 & 2000 \\ \hline
+Number of Steps in Each Training Phase & Data & 100 & 250 & 500 & 750 & 1000 & 2000 \\ \hline
 \multirow{2}{*}{Training MSE} & Mean & 0.050 & 0.068 & 0.066 & 0.071 & 0.069 & 0.071 \\ \cline{2-8}
-\ & Variance & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 \\ \hline
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
 \multirow{2}{*}{Validation 1 MSE} & Mean & 0.064 & 0.094 & 0.092 & 0.098 & 0.096 & 0.098  \\ \cline{2-8}
-\ & Variance & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 \\ \hline
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
 \multirow{2}{*}{Misclassification 1 (\%)} & Mean & 2.18 & 3.45 & 3.39 & 3.97 & 3.88 & 3.65 \\ \cline{2-8}
 \ & Variance & $<$0.01 & 0.283 & 0.222 & 0.952 & 0.947 & 0.106 \\ \hline
 \multirow{2}{*}{Validation 2 MSE} & Mean & 0.101 & 0.127 & 0.118 & 0.134 & 0.128 & 0.131 \\ \cline{2-8}
-\ & Variance & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 & $<$0.01 \\ \hline
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
 \multirow{2}{*}{Misclassification 2 (\%)} & Mean & 4.54 & 4.96 & 3.88 & 5.88 & 5.28 & 5.12 \\ \cline{2-8}
 \ & Variance & 5.38 & 7.02 & 3.36 & 11.7 & 10.4 & 8.74 \\ \hline
 \end{tabular}
@@ -330,10 +330,36 @@ Number of Steps in Each Training Phase & Type & 100 & 250 & 500 & 750 & 1000 & 2
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[height=5cm]{steps-plot.pdf}
+\includegraphics[width=7.5cm]{steps-plot.pdf} \includegraphics[width=7.5cm]{neighbourhood-plot.pdf}
 \end{center}
-\caption{\label{fig:testing-plots} Plots from testing varying number of training steps (left), varying neighbourhood sizes (mid), and varying learning rates (right).}
+\caption{\label{fig:testing-plots} Plots from testing varying number of training steps (left), varying neighbourhood sizes (right).}
 \end{figure}
+
+With number of steps at each phase of training set at 500, a few training configurations are tested at varying initial neighbourhood sizes at the default learning rate, as shown in Figure \ref{fig:neighbourhood-testing} and plotted in Figure \ref{fig:testing-plots} (mid). The result is unanimous: the default initial neighbourhood size of 3 for the ordering phase produces the best results in both unseen validation datasets. The initial neighbourhood size for the convergence phase is set at 1.
+
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|*{8}{c|}}
+\hline 
+Initial Neighbourhood Size & Data & 2 & 3 & 5 & 10 & 15 & 20 \\ \hline
+\multirow{2}{*}{Training MSE} & Mean & 0.084 & 0.069 & 0.058 & 0.052 & 0.055 & 0.055 \\ \cline{2-8}
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{Validation 1 MSE} & Mean & 0.111 & 0.959 & 0.073 & 0.063 & 0.067 & 0.067 \\ \cline{2-8}
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{Misclassification 1 (\%)} & Mean & 4.15 & 3.58 & 7.46 & 4.35 & 4.63 & 4.65 \\ \cline{2-8}
+\ & Variance & $<$0.01 & 0.072 & 0.002 & 0.136 & 0.154 & 0.132 \\ \hline
+\multirow{2}{*}{Validation 2 MSE} & Mean & 0.165 & 0.125 & 0.142 & 0.126 & 0.137 & 0.138 \\ \cline{2-8}
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{Misclassification 2 (\%)} & Mean & 8.26 & 4.48 & 17.6 & 10.3 & 11.4 & 11.5 \\ \cline{2-8}
+\ & Variance & 5.55 & 6.87 & $<$0.01 & 2.11 & 2.39 & 2.26 \\ \hline
+\end{tabular}
+\end{center}
+\caption{\label{fig:neighbourhood-testing} Results from varying the number of steps in each phase of training on a [20 1] SOM. The total number of training epochs is twice this number.}
+\end{figure}
+
+Finally, the only two other adjustable parameters are the grid topology and distance function. As the experiments are conducted on a one-dimensional grid, the topology of the neurons will remain in a straight line no matter how the grid is organised, and have a consistent distance between any specific pair of neurons no matter the distance function. Therefore, the two parameters remain as hexagonal and linked distance.
+
 \subsection{Evaluation of the trained SOM}
 
 Before starting the evaluation of the trained SOM, it is necessary to first discuss in more detail how the actual misclassification rates (``Misclassification \%'') are calculated. As described at the start of Section \ref{subsec:preprocessing}, an assumption was made that the one-dimensional SOM will cluster the two classes of inputs at the two ends of the map. During the course of this report, extensive observations on $plotsomhits$ have always showed that this is the case on one-dimensional SOMs without normalisation or PCA conducted on the input data. 

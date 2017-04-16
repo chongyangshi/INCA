@@ -242,9 +242,8 @@ datum = [datum; unpcad_training_mses; unpcad_val1_mses; unpcad_val1_miss; unpcad
 for i = 1:size(datum, 1)
     fprintf('%d: mean %f, variance %f\n', i, mean(datum(i,:)), var(datum(i,:)));
 end
-%}
 
-% Influence of the steps.
+% Influence of the steps : 500.
 som_steps = [100 250 500 750 1000 2000];
 mean1_miss = [];
 mean2_miss = [];
@@ -276,4 +275,75 @@ axis([100,2000,80,100]);
 legend(['Validation Set 1 (2665 inputs)'; 'Validation Set 2 (9752 inputs)']);
 title('Performance of SOM on Unseen Data (Varying Training Steps)');
 xlabel('Number of Training Steps');
+ylabel('Mean Correct Classification Rate');
+
+% Influence of the neighbourhood size: 3.
+neighbourhood_sizes = [2 3 5 10 15 20];
+mean1_miss = [];
+mean2_miss = [];
+for s = 1:size(neighbourhood_sizes, 2)
+    training_mses = [];
+    val1_mses = [];
+    val1_miss = [];
+    val2_mses = [];
+    val2_miss = [];
+    for i = 1:10
+        som_size = [20 1];
+        test_som = selforgmap(som_size, 500, neighbourhood_sizes(s));
+        test_som = train(test_som, proper_training_in);
+        training_mses = [training_mses get_mse_som(test_som, proper_training_in, proper_training_out)];
+        val1_mses = [val1_mses get_mse_som(test_som, door_closed_test_in, door_closed_test_out)];
+        val1_miss = [val1_miss get_misclassification_som(test_som, door_closed_test_in, door_closed_test_out)];
+        val2_mses = [val2_mses get_mse_som(test_som, door_open_test_in, door_open_test_out)];
+        val2_miss = [val2_miss get_misclassification_som(test_som, door_open_test_in, door_open_test_out)];
+    end
+    fprintf('%d steps: Mean T MSE %f, V1 MSE %f, V1 MIS %f, V2 MSE %f, V2 MIS %f.\n', neighbourhood_sizes(s), mean(training_mses), mean(val1_mses), mean(val1_miss), mean(val2_mses), mean(val2_miss));
+    fprintf('%d steps: Vari T MSE %f, V1 MSE %f, V1 MIS %f, V2 MSE %f, V2 MIS %f.\n\n', neighbourhood_sizes(s), var(training_mses), var(val1_mses), var(val1_miss), var(val2_mses), var(val2_miss));
+    mean1_miss = [mean1_miss 100 - mean(val1_miss)];
+    mean2_miss = [mean2_miss 100 - mean(val2_miss)];
+end
+figure;
+plot(neighbourhood_sizes, mean1_miss, '-rx'); hold on;
+plot(neighbourhood_sizes, mean2_miss, '-gx');
+axis([2,20,80,100]);
+legend(['Validation Set 1 (2665 inputs)'; 'Validation Set 2 (9752 inputs)']);
+title('Performance of SOM on Unseen Data (Varying Neighbourhood Sizes)');
+xlabel('Initial Neighbourhood Size');
+ylabel('Mean Correct Classification Rate');
+%}
+
+% Influence of the learning rate size.
+learning_rates = [0.05 0.1 0.3 0.6 0.9 1.5];
+mean1_miss = [];
+mean2_miss = [];
+for s = 1:size(learning_rates, 2)
+    training_mses = [];
+    val1_mses = [];
+    val1_miss = [];
+    val2_mses = [];
+    val2_miss = [];
+    learning_rate1 = learning_rates(s);
+    learning_rate2 = learning_rate1 / 45;
+    for i = 1:10
+        som_size = [20 1];
+        test_som = newsom(proper_training_in, som_size, 'hextop', 'linkdist', learning_rate1, 500, learning_rate2, 1);
+        test_som = train(test_som, proper_training_in);
+        training_mses = [training_mses get_mse_som(test_som, proper_training_in, proper_training_out)];
+        val1_mses = [val1_mses get_mse_som(test_som, door_closed_test_in, door_closed_test_out)];
+        val1_miss = [val1_miss get_misclassification_som(test_som, door_closed_test_in, door_closed_test_out)];
+        val2_mses = [val2_mses get_mse_som(test_som, door_open_test_in, door_open_test_out)];
+        val2_miss = [val2_miss get_misclassification_som(test_som, door_open_test_in, door_open_test_out)];
+    end
+    fprintf('%d steps: Mean T MSE %f, V1 MSE %f, V1 MIS %f, V2 MSE %f, V2 MIS %f.\n', learning_rates(s), mean(training_mses), mean(val1_mses), mean(val1_miss), mean(val2_mses), mean(val2_miss));
+    fprintf('%d steps: Vari T MSE %f, V1 MSE %f, V1 MIS %f, V2 MSE %f, V2 MIS %f.\n\n', learning_rates(s), var(training_mses), var(val1_mses), var(val1_miss), var(val2_mses), var(val2_miss));
+    mean1_miss = [mean1_miss 100 - mean(val1_miss)];
+    mean2_miss = [mean2_miss 100 - mean(val2_miss)];
+end
+figure;
+plot(learning_rates, mean1_miss, '-rx'); hold on;
+plot(learning_rates, mean2_miss, '-gx');
+axis([0.1,1.5,80,100]);
+legend(['Validation Set 1 (2665 inputs)'; 'Validation Set 2 (9752 inputs)']);
+title('Performance of SOM on Unseen Data (Varying Learning Rates)');
+xlabel('Initial Learning Rate');
 ylabel('Mean Correct Classification Rate');
