@@ -123,7 +123,7 @@ In addition, a few more runs of the cursory testing also shows that the misclass
 
 \section{Room occupancy detection with self-organising maps}
 
-\subsection{Data exploration and pre-processing}
+\subsection{Data exploration and pre-processing} \label{subsec:preprocessing}
 While Section \ref{sec:architectures} merged the two testing datasets for convenience, according to the source of the data, the two testing datasets are different in nature: the much smaller first dataset was recorded mostly when the door to the room is closed, and the bigger second dataset was recorded mostly with the door open \cite[Tb. 5]{candanedo2016accurate}. Therefore, for the in-depth study of the data in this section, the two testing datasets will be processed separately. The number of inputs in the training dataset and the two test datasets (Validation 1, Validation 2) are 8143, 2665 and 9752 respectively.
 
 Based on observations of results from $plotsomhits$ in cursory testing, an assumption is made that the SOM will always class the data on either end of the one-dimensional network, which has always been the case in the observed results. This is used to calculate the misclassification rate, based on which end is closer to the location the data is placed by the SOM. When high misclassification rates are observed after preprocessing procedures later in this section, $plotsomhits$ will be consulted again to ensure that the problem is not from this assumption. It is worth noting that the toolbox's SOM performs no preprocessing by default.
@@ -145,7 +145,7 @@ Mean Validation 2 MSE & 0.112 & 0.140 \\ \hline
 Mean Misclassification 2 (\%) & 16.08 & 9.23 \\ \hline
 \end{tabular}
 \end{center}
-\caption{\label{fig:equalize-testing} Results from testing the balancing of training input on a [20 1] SOM. (All MSE variances $<0.01$, all \% variances $<0.02$.)}
+\caption{\label{fig:equalize-testing} Results from testing the balancing of training input on a [20 1] SOM. (All MSE variances $<0.01$, all \% variances $<2.00$.)}
 \end{figure}
 
 Two types of data based on time are provided: the sequence number and the exact time. Both of which could be potentially useful for the network, especially in studying the time-based occupation pattern of the room studied. But at the same time, this could cause the loss of generalisability, as well as affecting the network performance. In order to determine the suitability of using time, the best SOM configuration Section \ref{subsec:som-test} -- [20 1] is trained by three variations of the training dataset: time removed, with time sequence numbers, and with exact times converted into integer timestamps. In the latter two variations, the time variable is scaled to between 0 and 1. For all variations, the other five input variables are attached as is. The results of the testing can be found in Figure \ref{fig:time-testing}.
@@ -210,7 +210,7 @@ Mean Validation 2 MSE & 0.320 & 0.101 \\ \hline
 Mean Misclassification 2 (\%) & 60.53 & 4.58 \\ \hline
 \end{tabular}
 \end{center}
-\caption{\label{fig:normalize-testing} Results from testing the [0, 1] normalisation of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised misclassification 2 variance $=5.74$ , rest $<0.01$.)}
+\caption{\label{fig:normalize-testing} Results from testing the [0, 1] normalisation of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised misclassification 2 variance $=5.74$ , rest $<1.00$.)}
 \end{figure}
 
 An alternative to normalisation is to first transform input data so that each variable has a mean of 0 and standard deviation of 1, by first applying $mapstd$ then $processpca$ with a maximum fraction of 0.02. This resulted in the removal of one variable -- which makes sense, as variable \#5 Humidity Ratio was calculated from temperature and relative humidity, resulting in a possible correlation. The result of PCA is visualised in Figure \ref{fig:pca-before-after} (right). It is evident that the processed input variables are far less correlated, and could potentially improve the training of SOM.
@@ -230,7 +230,7 @@ Mean Validation 2 MSE & 0.303 & 0.100 \\ \hline
 Mean Misclassification 2 (\%) & 38.70 & 4.55 \\ \hline
 \end{tabular}
 \end{center}
-\caption{\label{fig:pca-testing} Results from testing the PCA processing of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised misclassification 2 variance $=5.50$ , rest $<0.22$.)}
+\caption{\label{fig:pca-testing} Results from testing the PCA processing of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised misclassification 2 variance $=5.50$ , rest $<2.20$.)}
 \end{figure}
 
 In order to confirm that the high misclassification rates do not originate from a problem in the assumption of SOM clustering on two ends, and that using a two-dimensional SOM instead will not alleviate the issue, SOM sample hit plots from the training of the [20 1] and another [20 5] SOM are shown in Figure \ref{fig:pca-fail}. It can be observed that in both cases, more than two clusters of the data can be seen for each class, rendering a meaningful binary classification impossible.
@@ -254,11 +254,11 @@ Considering the fact that the five variables shown in Figure \ref{fig:final-vari
 
 The self-organising map (SOM) represents a unique feedforward architecture. The architecture consists of a mesh of connected neurons, each selectively tuned for specific features of the input data during the training process \cite[Sec. 9.1]{haykin2008}. The mesh of neurons are topologically ordered \cite[p. 11]{som-lecture}, which implies that a specific point on the map formed by these neurons maps to a specific set of characteristics seen in a certain set of input data. This feature allows SOM to be used to solve simple classification problems such as this one, in addition to its very useful purposes in projecting high-dimensionally data nonlinearly to achieve purposes such as visualisation. Two models of this mapping process exist: the Willshaw-von der Malsburg's model and the Kohonen model \cite[Sec. 9.2]{haykin2008}, and the MATLAB toolbox uses the Kohonen model \cite{som-matlab}, to be described in more detail in Section \ref{subsec:training}.
 
-The SOM is implemented with the $selforgmap$ and associated methods in the MATLAB Neural Network Toolbox \cite{kohonen2014matlab}. For all of the preliminary testings in the previous sections, the default parameters for the network are used: 100 steps in each stage of the training (stages to be covered in \ref{subsec:training}), initial neighbourhood size of 3 (to be later reduced), arranged in a hexagonal topology with linked distance as the distance function. In addition, the legacy $newsom$ method also allows the creation of same SOMs with adjustable learning rates, at this time they are set to defaults. Later in Section \ref{subsec:training}, changes to some of these parameters will be explored.
+The SOM is implemented with the $selforgmap$/$newsom$ and associated methods in the MATLAB Neural Network Toolbox \cite{kohonen2014matlab}. For all of the preliminary testings in the previous sections, the default parameters for the network are used: 100 epochs in each phase of the training (phases to be covered in \ref{subsec:training}), initial neighbourhood size of 3 (to be later reduced), arranged in a hexagonal topology with linked distance as the distance function. In addition, the legacy $newsom$ method also allows the creation of same SOMs with adjustable learning rates, at this time they are set to defaults. Later in Section \ref{subsec:training}, changes to some of these parameters will be explored.
 
-The architecture of the SOM is relatively simple to implement: an input layer of a set number of neurons connects to a layer of map neurons (nodes) topographically arranged in a mesh, the dimensions of which are defined by the network configuration. Each map neuron has a set of weights in its connections with neurons on the input layer, which affects the length of the connection, resulting in the surface of the mesh to ``bend'' as the weights change. At initialisation, various methods can be used to initialise these weights. The toolbox default creates linearly separated sets of weight, and places the same number of neurons on the input layer as there are input variables, as shown in Figure \ref{fig:som-init}.
+The architecture of the SOM is relatively simple to implement: an input layer of a set number of neurons connects to a single layer of map neurons (nodes) topographically arranged in a mesh, the dimensions of which are defined by the network configuration. This forms a feedforward structure \cite[p. 429]{haykin2008}. Each map neuron has a set of weights in its connections with neurons on the input layer, which affects the length of the connection, resulting in the surface of the mesh to ``bend'' as the weights change. At initialisation, various methods can be used to initialise these weights. The toolbox default creates linearly separated sets of weight, and places the same number of neurons on the input layer as there are input variables, as shown in Figure \ref{fig:som-init}.
 
-Lateral connections are also to be created between neighbouring neurons based on the topology. Their positions are useful to the distance function such as linked distance (which means distances immutable in this case, as $linkdist$ counts by neuron only), as mentioned above. In the case of the one-dimensional mesh used in this report, the lateral connections are much simpler due to the simplified structure (at most two connections per neuron), as shown in Figure \ref{fig:som-init} (left). A visual illustration of a SOM of dimensions [5 2] is shown in Figure \ref{fig:som-visual}.
+Lateral connections are also to be created between neighbouring neurons based on the topology. Their positions are useful to the distance function such as linked distance (which means distances are immutable in this case, as $linkdist$ counts by neuron only), as discussed above. In the case of the one-dimensional mesh used in this report, the lateral connections are much simpler due to the simplified structure (at most two connections per neuron), as shown in Figure \ref{fig:som-init} (left). A visual illustration of another SOM with dimensions [5 2] is shown in Figure \ref{fig:som-visual}.
 
 \begin{figure}[h]
 \begin{center}
@@ -271,11 +271,70 @@ Lateral connections are also to be created between neighbouring neurons based on
 \begin{center}
 \includegraphics[width=12cm]{som-visual.pdf} 
 \end{center}
-\caption{\label{fig:som-visual} Visual illustration of a SOM with dimensions [5 2] and two input neurons (possibly connecting two input variables).}
+\caption{\label{fig:som-visual} Visual illustration of a SOM with dimensions [5 2] and two input neurons (possibly connecting two input variables). The mesh is arranged in $hextop$ grid.}
 \end{figure}
 
 \subsection{Training of the SOM architecture} \label{subsec:training}
  
+Unlike MLP, a Kohonen SOM has a defined way of training, implemented in the toolbox as $trainbu$. The training is divided into two, usually equal-length phases: the ordering phase and the convergence phase \cite[p. 23]{som-lecture}. The purpose of the training process is to expose all neurons to a sufficient number of different input patterns with different corresponding active spots on the map \cite[p. 429]{haykin2008}, adjusting the input weights and therefore allowing the network to produce distinct responses for different classes of input patterns. Haykin \cite[p. 435]{haykin2008} recommends 1000 steps for each phase of the training. The MATLAB toolbox default is 100 for each phase \cite{som-matlab}, which produced a general classification accuracy of $>95$\% in cursory and data testing as shown in the previous sections.
+
+The two training phases are procedurally identical, but different in the values of learning rate ($\eta$) and neighbourhood size ($\sigma$), both of which smaller in the convergency phase than the ordering phase, as the ordering phases is responsible for main topological ordering, while the convergency phase is used for fine tuning between neighbouring neurons \cite[p. 23]{som-lecture}. The starting learning rates are $\eta=0.9$ and $\eta=0.02$, and the start neighbourhood sizes are the entire mesh's radius and $\sigma=1$ respectively for the ordering and convergence phases \cite{newsom-matlab}. These values are close to the recommended start values\cite[p. 23]{som-lecture}. During each phase, exponential functions gradually reduces these parameters, as described below.
+
+Each step during either phase is a three-stage process: competition, cooperation and adaptation \cite[pp. 429-430]{haykin2008}. The first stage determines the most excited (winning) neuron, which is used to determine a neighbourhood in the second stage, through a neighbourhood function $h$. Neurons in the neighbourhood selected then have their weights adjusted to be closer to the most excited neuron in the last stage. This process repeats until a defined number of steps are completed for each phase.
+
+In the competition phase, with an input space of $m$ variables and the particular input $x$, the selection of the most excited neuron $i(x)$ on a mesh of neurons (each neuron $j$ with a weight vector $w_j$) is with the following algorithm \cite[p. 430]{haykin2008}:
+\begin{equation}
+i(x) = arg \min_{j}\|x  - w_{j}\| \ \text{, where}\ x = [x_1, x_2, ..., x_m]^T \ \text{and} \ w_j = [w_{j1}, w_{j2}, ..., w_{jm}]^T
+\end{equation}
+
+In the cooperation phase, owing to the observation that neurons closer to the winning neuron assimilate more towards the winning neuron than the neurons further away, the neighbourhood function $h$ determines the scale of activation, based on the set neighbourhood size $\sigma$, and the distance $d_{ji}$ from the winning neuron determined by a distance function, such as linked distance ($linkdist$) \cite[p. 431]{haykin2008}:
+\begin{equation}
+h_{ji} = exp(-\frac{d^2_{ij}}{2\sigma^2}) \ \text{for lateral distance between the winning neuron $i$ and neighbouring neuron $j$}
+\end{equation}
+
+And finally, in the adaptation phase, neurons in the neighbourhood of the winning neuron will assimilate towards the winning neuron. The new weight $w_j(n+1)$ of neuron $j$ is updated at the $n+1$ step as followed \cite[p. 21]{som-lecture}:
+\begin{equation}
+w_j(n+1) = w_j(n) + \eta h_{ji}(n)(x-w_j(n))
+\end{equation}
+
+To achieve a gradual process of weight adjustment, the learning rate $\eta$ and the neighbourhood size $\sigma$ are generally exponentially reduced over time \cite[pp. 21-22]{som-lecture}:
+\begin{equation}
+\eta (n) = \eta_0 exp(-\frac{n}{\iota}) \;\;\;\;\;\;\;  \sigma (n) = \sigma_0 exp(-\frac{n}{\iota'})
+\end{equation}
+
+While there is no choice of training algorithms, it is possible to alter the number of steps in each phrase of training, as well as the initial learning rates $\eta$ and neighbourhood sizes $\sigma$ to observe their effects on the performance of the trained SOM. Based on the recommendations from the module \cite{som-lecture} and Haykin \cite{haykin2008}, several different combinations of training steps, learning rates and neighbourhood sizes are chosen, each tested ten times on a fresh [20 1] SOM. 
+
+First, to test the influence of number of steps in each phase, a few training configurations are tested with the default learning rates and neighbourhood sizes, as shown in Figure \ref{fig:steps-testing}.
+
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline 
+Number of Steps in Each Phase & Type & 100 & 250 & 500 & 750 & 1000 & 2000\\ \hline
+\multirow{2}{*}{Training MSE} & Mean & 0.050 & 0.068 & \\ \hline 
+& Variance & \<0.01 & \<0.01 &  \\ \hline
+\multirow{2}{*}{Validation 1 MSE} & Mean & 0.064 & 0.094 & \\ \hline 
+& Variance & \<0.01 & \<0.01 & \\ \hline
+\multirow{2}{*}{Misclassification 1} (\%) & Mean & 2.18 & 3.45 & \\ \hline 
+& Variance & \<0.01 & 0.283 &  \\ \hline
+\multirow{2}{*}{Validation 2 MSE & Mean & 0.101 & 0.127 & \\ \hline 
+& Variance & \<0.01 & \<0.01 & \\ \hline
+\multirow{2}{*}{Misclassification 2 (\%) & Mean & 4.54 & 4.96 \\ \hline
+& Variance & 5.38 & 7.02 & \\ \hline
+\end{tabular}
+\end{center}
+\caption{\label{fig:steps-testing} Results from varying the number of steps in each phase of training on a [20 1] SOM. The total number of training epochs is twice this number.}
+\end{figure}
+
+\subsection{Evaluation of the trained SOM}
+
+Before starting the evaluation of the trained SOM, it is necessary to first discuss in more detail how the actual misclassification rates (``Misclassification \%'') are calculated. As described at the start of Section \ref{subsec:preprocessing}, an assumption was made that the one-dimensional SOM will cluster the two classes of inputs at the two ends of the map. During the course of this report, extensive observations on $plotsomhits$ have always showed that this is the case on one-dimensional SOMs without normalisation or PCA conducted on the input data. 
+
+It was also observed that the positions of the two clusters have always been opposite to the ordering of the output vector (occupied/`1' inputs cluster on the left, unoccupied/`0' inputs cluster on the right. This is however, a projection of data in higher dimensions, and maybe arbitrary \cite[p. 10]{som-app-lecture}. While it appears that the toolbox implementation always projects the output data in this orientation, this is not a defined feature of the network.
+
+Therefore, it was possible to infer the class of an input, based on its position in the output vector from applying the SOM on that input. However, as the assumptions made may be implementation specific (i.e. to the MATLAB toolbox), some manual observations on the results of other implementations may be required before these assumptions can be carried over.
+
 \bibliographystyle{IEEEtran}
 \small{\bibliography{report}}
 \end{document}  
