@@ -375,7 +375,7 @@ Finally, the only two other adjustable parameters are the grid topology and dist
 \begin{figure}[h]
 \begin{subfigure}{0.5\textwidth}
 \fontsize{8}{10}\selectfont
-\begin{tabular}{|p{2.0cm}|p{1.0cm}|p{0.7cm}|p{0.7cm}|p{0.7cm}|p{0.7cm}|p{0.7cm}|}
+\begin{tabular}{|p{2.0cm}|p{1.0cm}|p{0.7cm}|p{0.7cm}|p{0.7cm}|>{\bfseries}p{0.8cm}|p{0.7cm}|}
 \hline 
 SOM Size & Data & [10 1] & [20 1] & [30 1] & [40 1] & [50 1] \\ \hline
 \multirow{2}{*}{\parbox{2.0cm}{\centering Training MSE}} & Mean & 0.040 & 0.066 & 0.081 & 0.062 & 0.080 \\ \cline{2-7}
@@ -393,15 +393,8 @@ SOM Size & Data & [10 1] & [20 1] & [30 1] & [40 1] & [50 1] \\ \hline
 \begin{subfigure}{0.5\textwidth}
 \includegraphics[width=7cm, right]{final-testing-plot.pdf}
 \end{subfigure}
-\caption{\label{fig:size-testing} Results from varying network size of the one-dimensional.}
+\caption{\label{fig:size-testing} Results from varying network size of the one-dimensional SOM.}
 \end{figure}
-
-%\begin{figure}[h]
-%\begin{center}
-%\includegraphics[width=7.5cm]{final-testing-plot.pdf}
-%\end{center}
-%\caption{\label{fig:testing-plots} Plot showing the effect of SOM network size on the accuracy of determining the occupancy status.}
-%\end{figure}
 
 It can be observed that while the [20 1] SOM used throughout the previous sections still performs very well, the performance of the larger [40 1] SOM is even better with the higher amount of steps in each phase of training. With variances of 0.427 and 0.074 on the misclassification rate of unseen inputs across ten runs, there is good confidence that the [40 1] SOM is the best performing network size. Therefore, \textbf{the [40 1] SOM with the determined training parameters is selected as the final architecture and configuration}.
 
@@ -426,6 +419,17 @@ During the further testings of SOM, tests were conducted to determine the suitab
 No further splitting of data were done, except for the automatic splittings of training dataset during the architecture selection by MLP and RBF. The toolbox implementation of SOM does not automatically preprocess data.
 
 \subsection{Results of SOM testing}
+
+The most prominent observation from the testings of SOM is that SOM can in fact produce very good results in (at least) binary classification through its clustering features. The performance of the final SOM on the unseen validation datasets yield a 2.59\% misclassification rate on the door-closed dataset, and 3.65\% on the door-open dataset, as shown in Figure \ref{fig:size-testing}. In comparison with the original research using different methods, which produced best misclassification rates of 2.1\% and 0.67\% on the two datasets \cite[p. 36]{candanedo2016accurate}, the SOM approach is not as good, although comparable to an average case reported by the research. 
+
+Interestingly, the SOM approach consistently performs worse on the second, larger dataset across nearly all testings in this report. Without considering the contrary results from the original research, there seems to be a straightforward reason: data in the second dataset were collected under a different condition to the training and the first validation dataset that -- the door is usually open for the second dataset. With the door open, the sensor data may exhibit small variations in their pattern, which could reduce the performance of the network. A possible explanation to this contradiction is that the actual occupancy level of the room is lower (64\%) in the first validation dataset than the other two datasets, which have a matching level of occupancy (79\%). While both the methods from the original research and neural networks such as MLP are aware of this context through supervised training on the training dataset, this is not the case for the unsupervised SOM, which may have posed a disadvantage. This may have reduced SOM's performance when the sensor data patterns varied due to the door being left open, and it cannot compensate this through context awareness. The SOM is also apparently unaffected by the inclusion of time data (Figure \ref{fig:time-testing}), potentially for the same reason.
+
+Nevertheless, the unsupervised training of SOM does allow an occupancy detection system to continuously and autonomously adapt to the changes in long term data pattern, as no occupancy reference information is required for its continued training. 
+
+Another interesting observation from the testing of SOM is that its classification performance increases as the network size increases until a peak level, then the performance decreases as more neurons are added. This is potentially due to the border effects of the SOM \cite[Sec. 4.5]{kohonen2014matlab}, causing distortions at borders of neurons. An overly large number of neurons could accelerate this effect, making side-based classification less reliable.
+
+Finally, choosing SOM for further evaluation in place of the more familiar MLP was not a decision taken lightly. During this report, I have attempted to apply conventional neural network approaches in data processing and experimentation, but some results were rather unexpected, such as the worsening effects both [0, 1] normalisation and PCA. However, based on SOM's overall performance in binary classification, I do believe that this application of SOM has a lot of potential for future exploration.
+
 
 \bibliographystyle{IEEEtran}
 \small{\bibliography{report}}
