@@ -35,7 +35,7 @@
 \date{}							
 \begin{document}
 \maketitle
-\section{Discussion of architectures} \label{sec:architectures}
+\section{Discussion and selection of architectures} \label{sec:architectures}
 The type of problem required to be solved with a neural network is a classification problem -- that is, to decide class membership of an unknown data item, based on another data set of data items with known class memberships \cite[Sec. 2]{Dreiseitl2002352}. Depending on the target output, the purpose could be to classify a set of inputs into two or more classes. This problem requires the simplest form of binary classification \cite[Fig. 4]{candanedo2016accurate}, where the output should be either \textit{yes} (room occupied) or \textit{no} (unoccupied). 
 
 Given the nature of the problem, a wide range of feedforward architectures can be chosen. This section gives a brief discussion on the features of each architecture, and performs test-runs of that architecture's network in various configurations to find the best cursory performance. The MATLAB Neural Network Toolbox \cite{kohonen2014matlab} will be used throughout this report, unless otherwise noted.
@@ -127,7 +127,7 @@ In addition, a few more runs of the cursory testing also shows that the misclass
 \subsection{Data exploration and pre-processing} \label{subsec:preprocessing}
 While Section \ref{sec:architectures} merged the two testing datasets for convenience, according to the source of the data, the two testing datasets are different in nature: the much smaller first dataset was recorded mostly when the door to the room is closed, and the bigger second dataset was recorded mostly with the door open \cite[Tb. 5]{candanedo2016accurate}. Therefore, for the in-depth study of the data in this section, the two testing datasets will be processed separately. The number of inputs in the training dataset and the two test datasets (Validation 1, Validation 2) are 8143, 2665 and 9752 respectively.
 
-Based on observations of results from $plotsomhits$ in cursory testing, an assumption is made that the SOM will always class the data on either end of the one-dimensional network, which has always been the case in the observed results. This is used to calculate the misclassification rate, based on which end is closer to the location the data is placed by the SOM. When high misclassification rates are observed after preprocessing procedures later in this section, $plotsomhits$ will be consulted again to ensure that the problem is not from this assumption. It is worth noting that the toolbox's SOM performs no preprocessing by default.
+Based on observations of results from $plotsomhits$ in cursory testing, an assumption is made that the SOM will always class the data on either end of the one-dimensional network, which has always been the case in the observed results. This is used to calculate the misclassification rate, based on which end is closer to the location the data is placed by the SOM. The rate represents the fraction of inputs placed on the wrong end of the SOM mesh. When high misclassification rates are observed after preprocessing procedures later in this section, $plotsomhits$ will be consulted again to ensure that the problem is not from this assumption. It is worth noting that the toolbox's SOM performs no preprocessing by default.
 
 The training dataset will be used to train the SOM, while the two testing datasets will be used as unseen inputs to evaluate the performance of the trained SOM. There is no missing value. With the exception of time, all values are numerical. Therefore no imputation or numerical encodings are required. All three datasets exhibit a relative imbalance in class membership: the percentages of room unoccupied are 79\%, 64\% and 79\% respectively. While is could potentially cause a bias in training and testing data, it was decided that no rebalancing measures should be conducted, as (1) the training and testing datasets exhibit a common pattern, and (2) this appears to be the normal usage pattern of the room in question, as well as the fact that 79\% is not an overwhelming majority that could skew results, such as those observed in using SOM to detect transaction fraud (negative $>$99\%) \cite{almendra2014using}, which would require special measures for the SOM to function reliably. 
 
@@ -355,19 +355,68 @@ Initial Neighbourhood Size & Data & 2 & 3 & 5 & 10 & 15 & 20 \\ \hline
 \ & Variance & 5.55 & 6.87 & $<$0.01 & 2.11 & 2.39 & 2.26 \\ \hline
 \end{tabular}
 \end{center}
-\caption{\label{fig:neighbourhood-testing} Results from varying the number of steps in each phase of training on a [20 1] SOM. The total number of training epochs is twice this number.}
+\caption{\label{fig:neighbourhood-testing} Results from varying the number of steps in each phase of training on a [20 1] SOM.}
 \end{figure}
 
-Finally, the only two other adjustable parameters are the grid topology and distance function. As the experiments are conducted on a one-dimensional grid, the topology of the neurons will remain in a straight line no matter how the grid is organised, and have a consistent distance between any specific pair of neurons no matter the distance function. Therefore, the two parameters remain as hexagonal and linked distance.
+Finally, the only two other adjustable parameters are the grid topology and distance function. As the experiments are conducted on a one-dimensional grid, the topology of the neurons will remain in a straight line no matter how the grid is organised, and have a consistent distance between any specific pair of neurons no matter the distance function. Therefore, the two parameters remain as hexagonal and linked distance. In summary, in determining the final training parameters, \textbf{the only change to the toolbox defaults is the increase in number of steps in each phase of training} (from 100 to 500).
 
-\subsection{Evaluation of the trained SOM}
+\subsection{Evaluations of Neural Networks}
 
-Before starting the evaluation of the trained SOM, it is necessary to first discuss in more detail how the actual misclassification rates (``Misclassification \%'') are calculated. As described at the start of Section \ref{subsec:preprocessing}, an assumption was made that the one-dimensional SOM will cluster the two classes of inputs at the two ends of the map. During the course of this report, extensive observations on $plotsomhits$ have always showed that this is the case on one-dimensional SOMs without normalisation or PCA conducted on the input data. 
+\textbf{The final network}: In selecting the final network, with the training parameters determined in Section \ref{subsec:training}, the only variable to decide on is the size of the one-dimensional SOM. As the cursory test (Figure \ref{fig:som-testing} has indicated a likely range of best performing SOM sizes, they are further tested on both validation datasets through ten fresh trainings with the determined training parameters, as shown in Figure \ref{fig:size-testing} and plotted in Figure \ref{fig:testing-plots}.
 
-It was also observed that the positions of the two clusters have always been opposite to the ordering of the output vector (occupied/`1' inputs cluster on the left, unoccupied/`0' inputs cluster on the right. This is however, a projection of data in higher dimensions, and maybe arbitrary \cite[p. 10]{som-app-lecture}. While it appears that the toolbox implementation always projects the output data in this orientation, this is not a defined feature of the network.
+\begin{figure}[h]
+\begin{center}
+\fontsize{9}{11}\selectfont
+\begin{tabular}{|*{8}{c|}}
+\hline 
+SOM Size & Data & [2 1] & [10 1] & [20 1] & [30 1] & [40 1] & [50 1] \\ \hline
+\multirow{2}{*}{Training MSE} & Mean & 0.078 & 0.040 & 0.066 & 0.081 & 0.062 & 0.080 \\ \cline{2-8}
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{Validation 1 MSE} & Mean & 0.127 & 0.053 & 0.092 & 0.108 & 0.077 & 0.103 \\ \cline{2-8}
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{Misclassification 1 (\%)} & Mean & 36.5 & 6.55 & 3.69 & 5.77 & 2.59 & 3.79 \\ \cline{2-8}
+\ & Variance & $<$0.01 & $<$0.01 & 0.306 & 0.535 & 0.427 & 2.18 \\ \hline
+\multirow{2}{*}{Validation 2 MSE} & Mean & 0.109 & 0.055 & 0.122 & 0.140 & 0.120 & 0.146 \\ \cline{2-8}
+\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{Misclassification 2 (\%)} & Mean & 21.01 & 7.59 & 4.87 & 4.35 & 3.65 & 8.88 \\ \cline{2-8}
+\ & Variance & $<$0.01 & $<$0.01 & 12.5 & 0.214 & 0.074 & 16.5 \\ \hline
+\end{tabular}
+\end{center}
+\caption{\label{fig:size-testing} Results from varying network size of the one-dimensional.}
+\end{figure}
 
-Therefore, it was possible to infer the class of an input, based on its position in the output vector from applying the SOM on that input. However, as the assumptions made may be implementation specific (i.e. to the MATLAB toolbox), some manual observations on the results of other implementations may be required before these assumptions can be carried over.
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=7.5cm]{final-testing-plot.pdf}
+\end{center}
+\caption{\label{fig:testing-plots} Plot showing the effect of SOM network size on the accuracy of determining the occupancy status.}
+\end{figure}
+
+It can be observed that while the [20 1] SOM used throughout the previous sections still performs very well, the performance of the larger [40 1] SOM is even better with the higher amount of steps in each phase of training. With variances of 0.427 and 0.074 on the misclassification rate of unseen inputs across ten runs, there is good confidence that the [40 1] SOM is the best performing network size. Therefore, \textbf{the [40 1] SOM with the determined training parameters is selected as the final architecture and configuration}.
+
+\textbf{The comparison metrics}: Because this problem is a binary ([0, 1]) classification problem \cite{candanedo2016accurate}[p. 28], the mean square error (MSE) of the network on either seen or unseen inputs is not a very meaningful measurement of performance (unless MSE gets very high, which implies the failure of the network). It may nevertheless be a good comparison between networks of the same type with different training parameters or sizes, therefore it has been included in all data figures in this report, alongside the misclassification rate. These two metrics have been used to evaluate and compare all architectures covered.
+
+Due to the nature of the classification problem, it may be better to measure with the misclassification rate, which is defined as the fraction of a set of inputs that are placed on the side of SOM away from the cluster of that class of inputs. This is calculated based on an assumption described as followed.
+
+As described at the start of Section \ref{subsec:preprocessing}, an assumption was made that the one-dimensional SOM will cluster the two classes of inputs at the two ends of the map. During the course of this report, extensive observations on $plotsomhits$ have always showed that this is the case on one-dimensional SOMs without normalisation or PCA conducted on the input data. 
+
+It was also observed that the positions of the two clusters have always been opposite to the ordering of the output vector (occupied/`1' inputs cluster on the left, unoccupied/`0' inputs cluster on the right). This is however, a projection of data in higher dimensions, and maybe arbitrary \cite[p. 10]{som-app-lecture}. While it appears that the toolbox implementation always projects the output data in this orientation, this is not a defined feature of the network.
+
+Therefore, while it possible to infer the class of an input based on its position in the output vector from applying the SOM on that input, the assumptions made here may be implementation specific (i.e. to the MATLAB toolbox). Some manual observations on the results of other implementations may be required before these assumptions can be carried over. 
+
+\textbf{The architecture selection process}: Three architectures potentially suitable for the nature of input and target data were shortlisted based on my previous experience solving regression or classification problems with these architectures: the multi-layer perceptron (MLP), radial basis function (RBF) networks, and the self-organising map (SOM). The testing and selection process has been covered in detail in Section \ref{sec:architectures}. A number of possible training functions and/or network sizes were tested, and the MSE's and misclassification rates from these tests are the primary factors in determining the architecture of choice. Additional considerations were made regarding the easiness of implementation and long term retraining requirements, as the chosen architecture could be potentially implemented in a commercial equipment for room occupancy detection purposes. 
+
+While both MLP and SOM have shown similar superior performance over RBF, SOM was ultimately chosen to be evaluated and tested further, as its unsupervised training and learning provides a unique benefit in reducing the maintenance requirement and increasing the adaptability of the network in fulfilling the specific purpose.
+
+\textbf{Data used during selection}: During the architecture selection process, the data was divided in two datasets: the training dataset (8143 records), and the validation dataset (two testing datasets combined, 12417 records). The target data was used as is, while the input data only had time removed, leaving five variables.
+
+During the further testings of SOM, tests were conducted to determine the suitability of various pre-processing methods, as well as to choose the best training parameters. All further testings used the same training dataset, and the two testing datasets separated (2665 and 9752), due to their distinct nature (the former recorded mostly with the door closed, and the latter mostly with the door opened \cite[Tb. 5]{candanedo2016accurate}). 
+
+No further splitting of data were done, except for the automatic splittings of training dataset during the architecture selection by MLP and RBF. The toolbox implementation of SOM does not automatically preprocess data.
+
+\subsection{Results of SOM testing}
 
 \bibliographystyle{IEEEtran}
 \small{\bibliography{report}}
 \end{document}  
+

@@ -312,11 +312,14 @@ xlabel('Initial Neighbourhood Size');
 ylabel('Mean Correct Classification Rate');
 %}
 
-% Influence of the learning rate size.
-learning_rates = [0.05 0.1 0.3 0.6 0.9 1.5];
+% Influence of the network size.
+trial_som_sizes = {[2 1] [10 1] [20 1] [30 1] [40 1] [50 1]};
+network_sizes = [];
 mean1_miss = [];
 mean2_miss = [];
-for s = 1:size(learning_rates, 2)
+for som_s = 1:size(trial_som_sizes, 2)
+    som_size = cell2mat(trial_som_sizes(som_s));
+    network_sizes = [network_sizes som_size(1)];
     training_mses = [];
     val1_mses = [];
     val1_miss = [];
@@ -325,8 +328,7 @@ for s = 1:size(learning_rates, 2)
     learning_rate1 = learning_rates(s);
     learning_rate2 = learning_rate1 / 45;
     for i = 1:10
-        som_size = [20 1];
-        test_som = newsom(proper_training_in, som_size, 'hextop', 'linkdist', learning_rate1, 500, learning_rate2, 1);
+        test_som = selforgmap(som_size, 500);
         test_som = train(test_som, proper_training_in);
         training_mses = [training_mses get_mse_som(test_som, proper_training_in, proper_training_out)];
         val1_mses = [val1_mses get_mse_som(test_som, door_closed_test_in, door_closed_test_out)];
@@ -334,16 +336,17 @@ for s = 1:size(learning_rates, 2)
         val2_mses = [val2_mses get_mse_som(test_som, door_open_test_in, door_open_test_out)];
         val2_miss = [val2_miss get_misclassification_som(test_som, door_open_test_in, door_open_test_out)];
     end
-    fprintf('%d steps: Mean T MSE %f, V1 MSE %f, V1 MIS %f, V2 MSE %f, V2 MIS %f.\n', learning_rates(s), mean(training_mses), mean(val1_mses), mean(val1_miss), mean(val2_mses), mean(val2_miss));
-    fprintf('%d steps: Vari T MSE %f, V1 MSE %f, V1 MIS %f, V2 MSE %f, V2 MIS %f.\n\n', learning_rates(s), var(training_mses), var(val1_mses), var(val1_miss), var(val2_mses), var(val2_miss));
+    fprintf('%d steps: Mean T MSE %f, V1 MSE %f, V1 MIS %f, V2 MSE %f, V2 MIS %f.\n', som_size(1), mean(training_mses), mean(val1_mses), mean(val1_miss), mean(val2_mses), mean(val2_miss));
+    fprintf('%d steps: Vari T MSE %f, V1 MSE %f, V1 MIS %f, V2 MSE %f, V2 MIS %f.\n\n', som_size(1), var(training_mses), var(val1_mses), var(val1_miss), var(val2_mses), var(val2_miss));
     mean1_miss = [mean1_miss 100 - mean(val1_miss)];
     mean2_miss = [mean2_miss 100 - mean(val2_miss)];
 end
+
 figure;
-plot(learning_rates, mean1_miss, '-rx'); hold on;
-plot(learning_rates, mean2_miss, '-gx');
-axis([0.1,1.5,80,100]);
+plot(network_sizes, mean1_miss, '-rx'); hold on;
+plot(network_sizes, mean2_miss, '-gx');
+axis([2,50,70,100]);
 legend(['Validation Set 1 (2665 inputs)'; 'Validation Set 2 (9752 inputs)']);
-title('Performance of SOM on Unseen Data (Varying Learning Rates)');
-xlabel('Initial Learning Rate');
+title('Performance of SOM on Unseen Data (Varying Network Size)');
+xlabel('Number of Neurons in 1-D SOM');
 ylabel('Mean Correct Classification Rate');
