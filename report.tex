@@ -9,6 +9,8 @@
 \usepackage{multirow}
 \usepackage{url}
 \usepackage{titlesec}
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
 \usepackage[parfill]{parskip}
 \usepackage{cite}
 \usepackage{array}
@@ -25,6 +27,12 @@
   columns=fixed,
   fontadjust=true,
   basewidth=0.5em
+}
+\let\OLDthebibliography\thebibliography
+\renewcommand\thebibliography[1]{
+  \OLDthebibliography{#1}
+  \setlength{\parskip}{0pt}
+  \setlength{\itemsep}{0pt plus 0.3ex}
 }
 \titleformat{\section}
 {\normalfont\large\bfseries}{\thesection}{1em}{}
@@ -362,35 +370,38 @@ Finally, the only two other adjustable parameters are the grid topology and dist
 
 \subsection{Evaluations of Neural Networks}
 
-\textbf{The final network}: In selecting the final network, with the training parameters determined in Section \ref{subsec:training}, the only variable to decide on is the size of the one-dimensional SOM. As the cursory test (Figure \ref{fig:som-testing} has indicated a likely range of best performing SOM sizes, they are further tested on both validation datasets through ten fresh trainings with the determined training parameters, as shown in Figure \ref{fig:size-testing} and plotted in Figure \ref{fig:testing-plots}.
+\textbf{The final network}: In selecting the final network, with the training parameters determined in Section \ref{subsec:training}, the only variable to decide on is the size of the one-dimensional SOM. As the cursory test (Figure \ref{fig:som-testing} has indicated a likely range of best performing SOM sizes, they are further tested on both validation datasets through ten fresh trainings with the determined training parameters, as shown in Figure \ref{fig:size-testing}.
 
 \begin{figure}[h]
-\begin{center}
-\fontsize{9}{11}\selectfont
-\begin{tabular}{|*{8}{c|}}
+\begin{subfigure}{0.5\textwidth}
+\fontsize{8}{10}\selectfont
+\begin{tabular}{|p{2.0cm}|p{1.0cm}|p{0.7cm}|p{0.7cm}|p{0.7cm}|p{0.7cm}|p{0.7cm}|}
 \hline 
-SOM Size & Data & [2 1] & [10 1] & [20 1] & [30 1] & [40 1] & [50 1] \\ \hline
-\multirow{2}{*}{Training MSE} & Mean & 0.078 & 0.040 & 0.066 & 0.081 & 0.062 & 0.080 \\ \cline{2-8}
-\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
-\multirow{2}{*}{Validation 1 MSE} & Mean & 0.127 & 0.053 & 0.092 & 0.108 & 0.077 & 0.103 \\ \cline{2-8}
-\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
-\multirow{2}{*}{Misclassification 1 (\%)} & Mean & 36.5 & 6.55 & 3.69 & 5.77 & 2.59 & 3.79 \\ \cline{2-8}
-\ & Variance & $<$0.01 & $<$0.01 & 0.306 & 0.535 & 0.427 & 2.18 \\ \hline
-\multirow{2}{*}{Validation 2 MSE} & Mean & 0.109 & 0.055 & 0.122 & 0.140 & 0.120 & 0.146 \\ \cline{2-8}
-\ & Variance & \multicolumn{6}{c|}{$<$0.01} \\ \hline
-\multirow{2}{*}{Misclassification 2 (\%)} & Mean & 21.01 & 7.59 & 4.87 & 4.35 & 3.65 & 8.88 \\ \cline{2-8}
-\ & Variance & $<$0.01 & $<$0.01 & 12.5 & 0.214 & 0.074 & 16.5 \\ \hline
+SOM Size & Data & [10 1] & [20 1] & [30 1] & [40 1] & [50 1] \\ \hline
+\multirow{2}{*}{\parbox{2.0cm}{\centering Training MSE}} & Mean & 0.040 & 0.066 & 0.081 & 0.062 & 0.080 \\ \cline{2-7}
+\ & Variance & \multicolumn{5}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{\parbox{2.0cm}{\centering Validation 1 MSE}} & Mean & 0.053 & 0.092 & 0.108 & 0.077 & 0.103 \\ \cline{2-7}
+\ & Variance & \multicolumn{5}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{\parbox{2.0cm}{\centering Misclassification 1 (\%)}} & Mean & 6.55 & 3.69 & 5.77 & 2.59 & 3.79 \\ \cline{2-7}
+\ & Variance & $<$0.01 & 0.306 & 0.535 & 0.427 & 2.18 \\ \hline
+\multirow{2}{*}{\parbox{2.0cm}{\centering Validation 2 MSE}} & Mean & 0.055 & 0.122 & 0.140 & 0.120 & 0.146 \\ \cline{2-7}
+\ & Variance & \multicolumn{5}{c|}{$<$0.01} \\ \hline
+\multirow{2}{*}{\parbox{2.0cm}{\centering Misclassification 2 (\%)}} & Mean & 7.59 & 4.87 & 4.35 & 3.65 & 8.88 \\ \cline{2-7}
+\ & Variance & $<$0.01 & 12.5 & 0.214 & 0.074 & 16.5 \\ \hline
 \end{tabular}
-\end{center}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=7cm, right]{final-testing-plot.pdf}
+\end{subfigure}
 \caption{\label{fig:size-testing} Results from varying network size of the one-dimensional.}
 \end{figure}
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[width=7.5cm]{final-testing-plot.pdf}
-\end{center}
-\caption{\label{fig:testing-plots} Plot showing the effect of SOM network size on the accuracy of determining the occupancy status.}
-\end{figure}
+%\begin{figure}[h]
+%\begin{center}
+%\includegraphics[width=7.5cm]{final-testing-plot.pdf}
+%\end{center}
+%\caption{\label{fig:testing-plots} Plot showing the effect of SOM network size on the accuracy of determining the occupancy status.}
+%\end{figure}
 
 It can be observed that while the [20 1] SOM used throughout the previous sections still performs very well, the performance of the larger [40 1] SOM is even better with the higher amount of steps in each phase of training. With variances of 0.427 and 0.074 on the misclassification rate of unseen inputs across ten runs, there is good confidence that the [40 1] SOM is the best performing network size. Therefore, \textbf{the [40 1] SOM with the determined training parameters is selected as the final architecture and configuration}.
 
