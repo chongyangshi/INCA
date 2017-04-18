@@ -32,23 +32,26 @@
 \renewcommand\thebibliography[1]{
   \OLDthebibliography{#1}
   \setlength{\parskip}{0pt}
-  \setlength{\itemsep}{0pt plus 0.3ex}
+  \setlength{\itemsep}{1pt plus 0.5ex}
 }
 \titleformat{\section}
 {\normalfont\large\bfseries}{\thesection}{1em}{}
 \titleformat{\subsection}
 {\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
 \title{\vspace{-1.6cm}INCA Open Examination Report}
-\author{Exam Number: Y3603***}
+\author{Exam Number: Y3603015}
 \date{}							
 \begin{document}
 \maketitle
+
+Sections \ref{sec:architectures} and \ref{sec:som-occupancy-detection} discusses experimentations conducted as required by Section A of the assessment. Section \ref{sec:architectures} covers the first part of Section A, while Section \ref{sec:som-occupancy-detection} covers the second part.
+
 \section{Discussion and selection of architectures} \label{sec:architectures}
-The type of problem required to be solved with a neural network is a classification problem -- that is, to decide class membership of an unknown data item, based on another data set of data items with known class memberships \cite[Sec. 2]{Dreiseitl2002352}. Depending on the target output, the purpose could be to classify a set of inputs into two or more classes. This problem requires the simplest form of binary classification \cite[Fig. 4]{candanedo2016accurate}, where the output should be either \textit{yes} (room occupied) or \textit{no} (unoccupied). 
+The type of problem required to be solved with a neural network is a classification problem -- that is, to decide class membership of an unknown data item, based on another dataset of items with known class memberships \cite[Sec. 2]{Dreiseitl2002352}. Depending on the target output, the purpose could be to classify a set of inputs into two or more classes. This problem requires the simplest form of binary classification \cite[Fig. 4]{candanedo2016accurate}, where the output should be either \textit{yes} (room occupied) or \textit{no} (unoccupied). 
 
-Given the nature of the problem, a wide range of feedforward architectures can be chosen. This section gives a brief discussion on the features of each architecture, and performs test-runs of that architecture's network in various configurations to find the best cursory performance. The MATLAB Neural Network Toolbox \cite{kohonen2014matlab} will be used throughout this report, unless otherwise noted.
+Given the nature of the problem, a wide range of feedforward architectures can be chosen. This section gives a brief discussion on the features of each architecture, and performs cursory test-runs of that architecture's network in various configurations to find the best cursory performance. The MATLAB Neural Network Toolbox \cite{kohonen2014matlab} will be used throughout this report, unless otherwise noted.
 
-The data used in these cursory test-runs are directly imported from the data CSVs with minimal processing. The training dataset is used to train the networks, while the two test datasets merged into one (for now) is used to test the networks on unseen data. Input and target datasets are separated due to toolbox requirements. At this stage, the only pre-processing done is the removal of time, which will be later experimented with the chosen architecture.
+The data used in these cursory test-runs are directly imported from the data CSVs with minimal processing. The training dataset (8143 records) is used to train the networks, while the two test datasets merged into one (12417 records, for now) is used to validate the networks on unseen data. Input and target datasets are separated due to toolbox requirements. At this stage, the only pre-processing done is the removal of time, which will be later experimented with the chosen architecture.
 
 \subsection{Multilayer perceptron networks with backpropagation} \label{subsec:mlp-test}
 
@@ -130,7 +133,7 @@ RBF is firstly ruled out due to its consistently high misclassification rate obs
 
 In addition, a few more runs of the cursory testing also shows that the misclassification rates of MLP fluctuate more significantly than SOM, which could potentially cause the system to be less stable in producing accurate results if MLP is used in place of SOM. 
 
-\section{Room occupancy detection with self-organising maps}
+\section{Room occupancy detection with self-organising maps} \label{sec:som-occupancy-detection}
 
 \subsection{Data exploration and pre-processing} \label{subsec:preprocessing}
 While Section \ref{sec:architectures} merged the two testing datasets for convenience, according to the source of the data, the two testing datasets are different in nature: the much smaller first dataset was recorded mostly when the door to the room is closed, and the bigger second dataset was recorded mostly with the door open \cite[Tb. 5]{candanedo2016accurate}. Therefore, for the in-depth study of the data in this section, the two testing datasets will be processed separately. The number of inputs in the training dataset and the two test datasets (Validation 1, Validation 2) are 8143, 2665 and 9752 respectively.
@@ -432,9 +435,11 @@ Finally, choosing SOM for further evaluation in place of the more familiar MLP w
 
 \section{Possible applications of neural networks in Building Management Systems (BMS)}
 
-\subsection{Automatic indoor humidity control with a multi-layer perceptron (MLP) network}
+For Section B of the assessment, Section \ref{subset:mlp-additional} of this report discusses a potential use of MLP networks for humidity control in BMS, while Section \ref{subset:art-additional} discusses a potential use of ART networks for abnormality detection with BMS data.
 
-For buildings located in climates with seasonal varying temperature levels, heating is usually required during Winter months. A forced-air heating system is often used for these buildings, on which a humidifier \cite{swimmer1970forced} usually needs to be attached to humidify the circulated air, prevent the air from becoming overly dry. However, as temperature and humidity of the system air intake change, the demand on the output of humidifier will change. It is necessary to maintain a suitable level of humidity by adjusting the output of the humidifier, as humidity levels too high or too low can cause health problems and other damages \cite{humidity-factors}, as well as for energy saving reasons. In place of normal human monitoring, it may be possible for an automatic control system based on a multi-layer perceptron (MLP) network to take over.
+\subsection{Automatic indoor humidity control with a multi-layer perceptron (MLP) network} \label{subset:mlp-additional}
+
+For buildings located in climates with seasonal varying temperature levels, heating is usually required during Winter months. A forced-air heating system is often used for these buildings, on which a humidifier \cite{swimmer1970forced} usually needs to be attached to humidify the circulated air, prevent the air from becoming overly dry. However, as temperature and humidity of the system air intake change, the demand on the output of humidifier will change. It is necessary to maintain a suitable level of humidity by adjusting the output of the humidifier (and perhaps the heater itself), as humidity levels too high or too low can cause health problems and other damages \cite{humidity-factors}, as well as for energy saving reasons. In place of normal human monitoring, it may be possible for an automatic control system based on a multi-layer perceptron (MLP) network to take over.
 
 \textbf{The network architecture}: A standard MLP network with backpropagation is to be implemented. The network will be divided into several layers, including an input layer, one or more hidden layers, and an output layer. The number of neurons on the input layer should match the number of inputs, while the number of neurons on the hidden layer as well as the number of hidden layers are to be determined through experimental training and evaluations. Neurons in the network are identical, each calculating a weighted sum of inputs with an activation function. The outputs from hidden layer neurons are then summed with weight to give an output. \cite[p. 2]{rbf-lecture} This output could be scaled into a power level of the humidifier. A common training algorithm such as Levenberg-Marquardt could be used to train the MLP.
 
@@ -444,6 +449,17 @@ For buildings located in climates with seasonal varying temperature levels, heat
 
 \textbf{Responding to significant changes}: Despite trained on past sensor data and human operated humidifier states, the MLP may still produce inappropriate outputs for the conditions. This is particularly likely if a significant environmental change has occurred. Examples may include a particularly hot day in Spring, or the installation of a heavy equipment in the room. While the system may have the chance to identify and correct the error itself, by monitoring the humidity meter based on a preset range of acceptable humidity and retraining with new data if necessary, a human operator can also step in and correct the output, thus setting new targets for the MLP to retrain. This allows the BMS to remain well-adapted for the particular conditions of the indoor environment it operates in.
 
+\subsection{Automatic abnormality detection with an Adaptive Resonance Theory (ART) network} \label{subset:art-additional}
+
+Within an advanced BMS, electrical control of fixtures such as door locks and lights are connected with a central computing system. This provides the potential of adapting a pattern recognition-capable neural network for the purpose of automatic abnormality detection, such as detecting an intrusion to the property while the owners are away. The Adaptive Resonance Theory (ART) network has been identified with this potential.
+
+\textbf{The network architecture}: The ART network is a fully-connected asymmetric-weight recurrent network, with two layers: an input/comparison layer and an output/recognition layer \cite[p. 7]{art-lecture}. The network is capable of autonomously manage pattern recognition and continued learning at the same time. The ART1 network accepts binary vectors only, while the ART2 variation can accept continuous inputs \cite[p. 21]{art-lecture}. Upon provided an input, the output from the network will reflect whether the pattern has been identified as a similar pattern to its existing long term memory, which will allow external systems to send the user a text message if an irregularity has been detected by the BMS. A vigilance threshold can be set by the user to adjust the sensitivity of the system \cite[p. 17]{art-lecture}.
+
+\textbf{The suitability of the architecture}: The most prominent feature of the ART making it suitable for the use of long term abnormality detection is that it can manage its own continuous learning while providing pattern recognition with its existing knowledge. This allows the system to be installed with minimal training, after which it can adapt itself to suit the property it serves. Because different home users have very different activity routines, this feature could effectively reduce the number of false positives it detects. ART is also a stable network \cite[p. 5]{art-lecture}, allowing it to function consistently under regular patterns of use. While the ART1 network can only accept binary vectors, this is already sufficient to represent a wide range of BMS states, such as status of lights in different rooms. With the continuous input support provided by ART2, more BMS states such as indoor noise level can be represented.
+
+\textbf{Data and training of the network}: A very wide range of potential BMS states can be used as input, such as the on/off states of lights and other appliances, the times and frequencies of doors being opened, and the average noise levels as detected by indoor sensors. All these data can be useful in identifying the state of the property. For example, if one only one day of the month the front door lock becomes disengaged at 3 am in the morning, it is plausible that this indicates an intrusion. The input data (both binary and continuous variable) will be stored in a vector and passed into an ART2 network for both recognition and learning. The input then passes through the network, triggering a search for a matching pattern in the network. If a stored pattern is similar enough as determined by the configuration vigilance threshold, the new pattern is incorporated into that class of patterns in the memory, otherwise, the system reports an abnormality and stores the pattern in a new class \cite[p. 18]{art-lecture}.
+
+\textbf{Responding to significant changes}: As a live system, the patterns received by the ART may suddenly change where it should not be considered an abnormality, such as when the occupiers of the property go on a vacation. Therefore, some false positives may be unavoidable until large enough number of new patterns eventually form a new long term memory trace in the network \cite[p. 7]{art-lecture}, when the new pattern is treated as familiar. To reduce the potential undue anxiety this may cause to a user away from their property, secondary systems can be used to inhibit certain types of alerts, such as a reduction of detected activity as opposed to an increase at certain times. While the ART itself usually cannot provide the nature of abnormality, this can be achieved by measuring BMS inputs mathematically in the secondary system. The secondary system can also be used to prevent consecutive alerts on the same mismatched pattern.
 
 \bibliographystyle{IEEEtran}
 \footnotesize{\bibliography{report}}

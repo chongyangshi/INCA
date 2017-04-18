@@ -310,9 +310,8 @@ legend(['Validation Set 1 (2665 inputs)'; 'Validation Set 2 (9752 inputs)']);
 title('Performance of SOM on Unseen Data (Varying Neighbourhood Sizes)');
 xlabel('Initial Neighbourhood Size');
 ylabel('Mean Correct Classification Rate');
-%}
 
-% Influence of the network size.
+% Influence of the network size: 40.
 trial_som_sizes = {[2 1] [10 1] [20 1] [30 1] [40 1] [50 1]};
 network_sizes = [];
 mean1_miss = [];
@@ -350,3 +349,4 @@ legend(['Validation Set 1 (2665 inputs)'; 'Validation Set 2 (9752 inputs)']);
 title('Performance of SOM on Unseen Data (Varying Network Size)');
 xlabel('Number of Neurons in 1-D SOM');
 ylabel('Mean Correct Classification Rate');
+%}
