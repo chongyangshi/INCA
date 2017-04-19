@@ -226,7 +226,7 @@ Mean Misclassification 2 (\%) & 60.53 & 4.58 \\ \hline
 \caption{\label{fig:normalize-testing} Results from testing the [0, 1] normalisation of training and testing inputs on a [20 1] SOM. (All MSE variances $<0.01$, unnormalised Misclassification 2 variance $=5.74$ , rest $<0.01$.)}
 \end{figure}
 
-An alternative to normalisation is to first transform input data so that each variable has a mean of 0 and standard deviation of 1, by first applying $mapstd$ then $processpca$ with a maximum fraction of 0.02. This resulted in the elimination of one input -- which makes sense, as variable \#5 Humidity Ratio was calculated from temperature and relative humidity, resulting in a possible correlation. The result of PCA is visualised in Figure \ref{fig:pca-before-after} (right). It is evident that the processed input variables are far less correlated, and could potentially improve the training of SOM.
+An alternative to normalisation is to first transform input data so that each variable has a mean of 0 and standard deviation of 1, and then eliminate one or more highly correlated variables, by applying $mapstd$ then $processpca$ with a maximum fraction of 0.02. This resulted in the elimination of one input -- which makes sense, as variable \#5 Humidity Ratio was calculated from temperature and relative humidity, resulting in a possible correlation. The result of PCA is visualised in Figure \ref{fig:pca-before-after} (right). It is evident that the processed input variables are far less correlated, and could potentially improve the training of SOM.
 
 However, it came to a surprise that this is not the case, after a comparison testing of 10 runs with toolbox defaults on a a [20 1] SOM, as shown in Figure \ref{fig:pca-testing}.
 
