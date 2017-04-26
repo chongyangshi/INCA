@@ -29,6 +29,9 @@
   fontadjust=true,
   basewidth=0.5em
 }
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{3}
 \let\OLDthebibliography\thebibliography
 \renewcommand\thebibliography[1]{
   \OLDthebibliography{#1}
@@ -291,7 +294,7 @@ Lateral connections are also created between neighbouring neurons based on the t
  
 Unlike MLP, a Kohonen SOM has a defined way of training, implemented in the toolbox as $trainbu$. The training is divided into two, usually equal-length phases: the ordering phase and the convergence phase \cite[p. 23]{som-lecture}. The purpose of the training process is to expose all neurons to a sufficient number of different input patterns with different corresponding active spots on the map \cite[p. 429]{haykin2008}, adjusting the input weights and therefore allowing the network to produce distinct responses on different classes of input patterns. Haykin \cite[p. 435]{haykin2008} recommends 1000 steps for each phase of the training. The MATLAB toolbox default is 100 for each phase \cite{som-matlab}, which produced a general classification accuracy of $>95$\% in cursory and data processing testing as shown in the previous sections.
 
-The two training phases are procedurally identical, but different in the values of learning rate ($\eta$) and neighbourhood size ($\sigma$), both of which smaller in the convergency phase than the ordering phase, as the ordering phases is responsible for main topological ordering, while the convergency phase is used for fine tuning between neighbouring neurons \cite[p. 23]{som-lecture}. The initial learning rates are $\eta=0.9$ and $\eta=0.02$, and the initial neighbourhood sizes are the entire mesh's radius and $\sigma=1$ for the ordering and convergence phases respectively \cite{newsom-matlab}. These values are close to the recommended start values\cite[p. 23]{som-lecture}. During each phase, exponential functions gradually reduces these parameters, as described below.
+The two training phases are procedurally identical, but different in the values of learning rate ($\eta$) and neighbourhood size ($\sigma$), both of which smaller in the convergency phase than the ordering phase, as the ordering phases is responsible for main topological ordering, while the convergency phase is used for fine tuning between neighbouring neurons \cite[p. 23]{som-lecture}. The initial learning rates are $\eta=0.9$ and $\eta=0.02$, and the initial neighbourhood sizes are the entire mesh's radius and $\sigma=1$ for the ordering and convergence phases respectively \cite{newsom-matlab}. These values are close to the recommended start values\cite[p. 23]{som-lecture}. During each phase, exponential functions gradually reduce these parameters, as described below.
 
 Each step during either phase is a three-stage process: competition, cooperation and adaptation \cite[pp. 429-430]{haykin2008}. The first stage determines the most excited (winning) neuron, which is used to determine a neighbourhood in the second stage, through a neighbourhood function $h$. Neurons in the neighbourhood selected then have their weights adjusted to be closer to the most excited neuron in the last stage. This process repeats until a defined number of steps are completed for each phase.
 
